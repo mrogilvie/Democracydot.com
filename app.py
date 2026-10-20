@@ -36,6 +36,14 @@ pages = {
             icon=":material/how_to_vote:",
         ),
     ],
+    "About": [
+        st.Page(
+            "pages/privacy.py",
+            title="Privacy Policy",
+            icon=":material/policy:",
+            url_path="privacy",
+        )
+    ],
     "App owner": [
         st.Page(
             "pages/owner_review.py",

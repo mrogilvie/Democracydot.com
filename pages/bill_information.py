@@ -268,13 +268,19 @@ st.caption(
     "introduced Bill and its Act as passed. Enter the Bill name; no web address "
     "is needed."
 )
-with st.form("parliament_bill_search_form"):
-    bill_name = st.text_input(
-        "Bill name",
-        value=st.session_state.get("bill_title", ""),
-        placeholder="For example, Conversion Practices Prohibition Bill 2026",
-    )
-    search_bill = st.form_submit_button("Search Parliament Records")
+def request_parliament_search() -> None:
+    st.session_state["parliament_search_requested"] = True
+
+
+bill_name = st.text_input(
+    "Bill name",
+    value=st.session_state.get("bill_title", ""),
+    placeholder="For example, Conversion Practices Prohibition Bill 2026",
+    help="Type the Bill name and press Enter to search Parliament records.",
+    key="parliament_bill_search_input",
+    on_change=request_parliament_search,
+)
+search_bill = st.session_state.pop("parliament_search_requested", False)
 
 if search_bill:
     st.session_state.pop("parliament_bill_tabled_url", None)
@@ -495,8 +501,16 @@ if compare_documents:
                 st.session_state["last_alignment"] = result
 
 if st.session_state.get("marked_up_html"):
+    with st.container(border=True):
+        st.subheader("Compared document")
+        st.caption(
+            "Red text was removed from the introduced Bill; green text was added "
+            "in the Act as passed."
+        )
+        st.iframe(st.session_state["marked_up_html"], height=640)
+
     st.link_button(
-        "Visit Madeleine Ogilvie MP on Facebook",
+        "Visit Madeleine Ogilvie MP and follow to access downloads",
         "https://www.facebook.com/MadeleineOgilvieMP/",
     )
     st.caption(

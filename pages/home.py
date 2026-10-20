@@ -99,6 +99,7 @@ st.markdown(
     """
     <footer class="dd-footer">
       <span>Democracydot</span>
+      <a href="/privacy" target="_self">Privacy Policy</a>
       <nav class="dd-social-links" aria-label="Social media">
         <a href="https://www.facebook.com/MadeleineOgilvieMP/" target="_blank"
            rel="noopener noreferrer">Madeleine Ogilvie MP on Facebook</a>
