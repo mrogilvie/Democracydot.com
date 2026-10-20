@@ -1,5 +1,7 @@
 import streamlit as st
 
+from follow_dialog import show_follow_dialog
+
 
 st.markdown(
     """
@@ -95,14 +97,14 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+if st.button("Follow Madeleine Ogilvie MP on Facebook", key="home_follow_dialog"):
+    show_follow_dialog()
 st.markdown(
     """
     <footer class="dd-footer">
       <span>Democracydot</span>
       <a href="/privacy" target="_self">Privacy Policy</a>
       <nav class="dd-social-links" aria-label="Social media">
-        <a href="https://www.facebook.com/MadeleineOgilvieMP/" target="_blank"
-           rel="noopener noreferrer">Madeleine Ogilvie MP on Facebook</a>
         <a href="https://www.facebook.com/democracydot" target="_blank"
            rel="noopener noreferrer">Facebook</a>
         <a href="https://www.linkedin.com/company/democracydot/"
