@@ -1,0 +1,6 @@
+openai
+streamlit>=1.49
+streamlit-pdf==1.0.8
+streamlit-cookies-controller==0.0.4
+python-dotenv
+pypdf

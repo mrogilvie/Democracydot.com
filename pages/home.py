@@ -1,0 +1,112 @@
+import streamlit as st
+
+
+st.markdown(
+    """
+    <section class="dd-hero">
+      <div class="dd-eyebrow"><span></span> Clarity for every citizen</div>
+      <h1>Democracy, made <em>understandable.</em></h1>
+    </section>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="dd-section-label">A clearer connection between your public voice and our laws</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <section class="dd-hero-copy">
+      <p>
+        Follow a Tasmanian Bill from first exposure draft to final Act.
+        Democracydot helps you understand the issues and take part in the whole
+        conversation. Quickly find relevant information, ask questions and
+        receive plain-English answers with Billbow, and compare a Bill with the
+        Act passed by the Tasmanian Parliament. Download a comparison document
+        showing the differences between the two documents.
+      </p>
+      <p>
+        The Democracy Index estimates how closely the Act reflects the Bill and
+        helps you explore how the Bill changed during the democratic process.
+      </p>
+    </section>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    "Explore the Bill, share your perspective, and see how the final text compares "
+    "with the original."
+)
+bill_info, interaction, decisions = st.columns(3)
+
+with bill_info:
+    with st.container(border=True):
+        st.markdown('<div class="dd-card-number">01</div>', unsafe_allow_html=True)
+        st.subheader("Bill information")
+        st.write(
+            "Get the essentials in one place: a plain-language overview, policy "
+            "context, source documents, and further reading."
+        )
+        st.page_link("pages/bill_information.py", label="Explore the Bill", icon=":material/arrow_forward:")
+
+with interaction:
+    with st.container(border=True):
+        st.markdown('<div class="dd-card-number">02</div>', unsafe_allow_html=True)
+        st.subheader("Democratic interaction")
+        st.write(
+            "Ask questions grounded in Bill material and submit an anonymous "
+            "comment for the app owner to review."
+        )
+        st.page_link("pages/bill_interaction.py", label="Join the conversation", icon=":material/arrow_forward:")
+
+with decisions:
+    with st.container(border=True):
+        st.markdown('<div class="dd-card-number">03</div>', unsafe_allow_html=True)
+        st.subheader("Democracy Index")
+        st.write(
+            "Compare the Bill with the final Act, generate a Democracy Index "
+            "report, and download a markup."
+        )
+        st.page_link("pages/decision_phase.py", label="See the report", icon=":material/arrow_forward:")
+st.markdown(
+    """
+    <div class="dd-index-note">
+      <strong>AI disclosure</strong><br>
+      Democracydot uses AI to generate summaries, answer questions, and estimate
+      alignment between original Bill and final Act text. AI outputs may be
+      incomplete or inaccurate and should be checked against official sources.
+      They are for general information only, not legal advice or an official
+      parliamentary assessment. The Democracy Index is an estimate, not a
+      definitive measure of democratic legitimacy.
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+st.markdown(
+    """
+    <p class="dd-site-link">
+      <a href="https://www.democracydot.com" target="_blank" rel="noopener noreferrer">
+        www.democracydot.com
+      </a>
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+st.markdown(
+    """
+    <footer class="dd-footer">
+      <span>Democracydot</span>
+      <nav class="dd-social-links" aria-label="Social media">
+        <a href="https://www.facebook.com/democracydot" target="_blank"
+           rel="noopener noreferrer">Facebook</a>
+        <a href="https://www.linkedin.com/company/democracydot/"
+           target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </nav>
+      <span>© 2026 Madeleine Ogilvie. All rights reserved.</span>
+    </footer>
+    """,
+    unsafe_allow_html=True,
+)

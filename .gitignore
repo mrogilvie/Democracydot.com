@@ -1,0 +1,9 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.streamlit/secrets.toml
+comments.sqlite3
+comments.sqlite3-journal
+comments.sqlite3-shm
+comments.sqlite3-wal

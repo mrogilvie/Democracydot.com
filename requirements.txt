@@ -1,0 +1,84 @@
+import re
+import secrets
+import sqlite3
+from datetime import datetime, timedelta, timezone
+
+import streamlit as st
+from comment_store import save_signup
+
+
+device_cookies = st.session_state["_device_cookies_controller"]
+if isinstance(device_cookies.get("democracydot_device"), str) and st.session_state.get(
+    "signup_complete"
+):
+    st.switch_page("pages/home.py")
+
+st.title("Free sign-up")
+st.write(
+    "Sign up to access Democracydot and receive updates and announcements."
+)
+st.caption(
+    "No password is needed. This sign-up records your contact details and "
+    "permission to send updates. It is not a private login account. This browser "
+    "will be remembered after sign-up unless its cookies are cleared. Your name "
+    "and mobile number are used to find an existing registration."
+)
+st.info(
+    "Your name and mobile number will be stored in this app's local database "
+    "and available to the password-protected app owner for sending updates. "
+    "They will not be sent to Parliament or to an AI service."
+)
+
+with st.form("signup_form"):
+    name = st.text_input("Name", autocomplete="name")
+    mobile = st.text_input(
+        "Mobile phone",
+        autocomplete="tel",
+        help="Include your country code if entering an international number.",
+    )
+    consent = st.checkbox(
+        "I agree to sign up and give permission for Democracydot to use my name "
+        "and mobile number to send me updates and announcements."
+    )
+    submitted = st.form_submit_button("Sign up for free")
+
+if submitted:
+    normalized_name = " ".join(name.split())
+    normalized_mobile = mobile.strip()
+    mobile_digits = re.sub(r"\D", "", normalized_mobile)
+
+    if not normalized_name:
+        st.error("Enter your name.")
+    elif (
+        not re.fullmatch(r"\+?[0-9][0-9\s().-]*", normalized_mobile)
+        or not 8 <= len(mobile_digits) <= 15
+    ):
+        st.error("Enter a valid mobile number with 8 to 15 digits.")
+    elif not consent:
+        st.error("Permission is required before we can save your sign-up.")
+    else:
+        device_token = secrets.token_urlsafe(32)
+        try:
+            save_signup(normalized_name, normalized_mobile, device_token)
+        except (OSError, sqlite3.Error) as error:
+            st.error(f"Could not save your sign-up: {error}")
+        except ValueError as error:
+            st.error(str(error))
+        else:
+            request_url = st.context.url or ""
+            forwarded_protocol = st.context.headers.get(
+                "X-Forwarded-Proto", ""
+            ).casefold()
+            device_cookies.set(
+                "democracydot_device",
+                device_token,
+                expires=datetime.now(timezone.utc) + timedelta(days=365 * 5),
+                max_age=60 * 60 * 24 * 365 * 5,
+                secure=(
+                    request_url.startswith("https://")
+                    or forwarded_protocol == "https"
+                ),
+                same_site="lax",
+            )
+            st.session_state["signup_complete"] = True
+            st.rerun()
