@@ -1,6 +1,4 @@
-OPENAI_API_KEY = "your key"
-DEMOCRACYDOT_OWNER_PASSWORD = "your password"OPENAI_API_KEY = "your key"
-DEMOCRACYDOT_OWNER_PASSWORD = "your password"# Democracydot
+# Democracydot
 
 Democracydot is an AI-supported civic technology project designed to make the legislative process more transparent, understandable, and engaging for the public. The goal is to turn dense policy and legal language into a clearer, more accessible understanding of what a Bill means, why it matters, and how it changes during parliamentary review.
 
@@ -21,6 +19,10 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Added durable Billbow comment and opted-in contact storage, visible only through the password-protected owner review page
 - Added API credential loading from a local `.env` file or Streamlit secrets, and ignored local secrets and Python bytecode in Git
 - Updated this documentation with setup, behavior, security/privacy notes, limitations, and the original feature instructions
+- Reordered the pages to Bill Information, Democratic Engagement, and Democracy Index, with matching titles in the sidebar and on the landing page
+- Added a link to Madeleine Ogilvie MP's Facebook page on the landing page, and gated the Democracy Index download behind a self-declared follow of that page (the declaration is not verified by Facebook)
+- Added an on-screen view of the compared document, and search that starts when a Bill name is entered
+- Added a Privacy Policy page (`/privacy`) and Terms and Conditions page (`/terms`), with a browse-to-accept notice on every page
 
 ## Vision
 
@@ -49,7 +51,9 @@ The Streamlit application opens on a public landing page, and all three Bill fea
 
 1. **Bill Information** — enter a Bill title, summary, background, and policy context; upload policy and information documents; add essential-reading links; and optionally draft a plain-language summary with AI.
 2. **Democratic Engagement** — enter a Bill name to search Tasmanian Parliament records. The matching Bill as introduced PDF, second reading speech, fact sheet, and clause notes are retrieved and displayed. Then the user can ask AI-grounded questions using the material on the Bill Information page and submit anonymous feedback.
-3. **Democracy Index** — search for a Bill on the Tasmanian Parliament website to view its introduced PDF and automatically find and view the corresponding Act as passed PDF. Use the **Compare documents** feature to generate a markup of changes and an AI-assisted alignment score.
+3. **Democracy Index** — enter a Bill name on the Tasmanian Parliament website search to view its introduced PDF and automatically find and view the corresponding Act as passed PDF. The search starts when the name is entered. Use the **Compare document** button to see the compared document on screen with changes marked, and to get an AI-assisted alignment score. Downloading the marked-up comparison requires the user to confirm they follow Madeleine Ogilvie MP on Facebook; this is a self-declaration and is not verified.
+
+The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are also available as pages, and a notice at the bottom of every page says that using the app means accepting the terms.
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.
 
@@ -77,7 +81,11 @@ To enable the private owner review page, set a strong password in the root `.env
 DEMOCRACYDOT_OWNER_PASSWORD=choose-a-strong-unique-password
 ```
 
-For deployment, configure `DEMOCRACYDOT_OWNER_PASSWORD` in Streamlit secrets instead. Billbow comments and any previously collected opted-in sign-up names and mobile numbers are stored in `comments.sqlite3` in the project root.
+For deployment, configure `DEMOCRACYDOT_OWNER_PASSWORD` in Streamlit secrets instead. Billbow comments and any previously collected opted-in sign-up names and mobile numbers are stored in `comments.sqlite3` in the project root. On Streamlit Community Cloud these files are lost when the app restarts, so durable storage there needs an external database.
+
+## Deployment
+
+The app is deployed from this repository on Streamlit Community Cloud (repository `mrogilvie/Democracydot.com`, branch `main`, main file `app.py`). Add `OPENAI_API_KEY` and `DEMOCRACYDOT_OWNER_PASSWORD` under **Advanced settings → Secrets**. Pushes to `main` update the live app. Community Cloud does not support custom domains, so the app is served from a `streamlit.app` address.
 
 ## Run the app
 
@@ -98,10 +106,14 @@ demodot.py                  Shared OpenAI, source-text, and Bill-session helpers
 comment_store.py            SQLite persistence for anonymous Billbow submissions
 pages/
   home.py                   App overview and links into the three stages
-  bill_information.py       Bill details, uploads, links, and optional summary
-  bill_interaction.py       Billbow comments and Bill-grounded Q&A
-  decision_phase.py         Hansard link, Bill comparison, and Demodot Meter
+  bill_interaction.py       Page 1, Bill Information: details, uploads, links, and optional summary
+  decision_phase.py         Page 2, Democratic Engagement: Billbow comments and Bill-grounded Q&A
+  bill_information.py       Page 3, Democracy Index: Bill comparison, markup, and Demodot Meter
+  privacy.py                Privacy Policy page, rendered from PRIVACY.md
+  terms.py                  Terms and Conditions page, rendered from TERMS.md
   owner_review.py           Password-protected review of comments and sign-ups
+PRIVACY.md                  Privacy Policy text
+TERMS.md                    Terms and Conditions text
 requirements.txt            Python dependencies
 ```
 
