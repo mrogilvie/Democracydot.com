@@ -7,13 +7,15 @@ Democracydot is an AI-supported civic technology project designed to make the le
 The repository has progressed from its initial Python/Streamlit scaffold to a working three-stage prototype for following legislative proposals and constituent engagement. Completed work includes:
 
 - Established the project mission and Python development setup
-- Added a Streamlit application with a sidebar flow across Bill information, Bill interaction, and Decision phase
+- Copied and moved the code to the Democracydot.com repository to access more credits and continue development
+- Added a Streamlit application with a sidebar flow across Bill Information, Democratic Engagement, and Democracy Index
 - Added a responsive visual design system using cornflower blue, marine navy, white, and neon-pink accents
 - Integrated OpenAI using `gpt-4o-mini` for plain-language Bill summaries, source-grounded questions and answers, and structured Bill-version comparisons
 - Added upload and text extraction for PDF, plain-text, and Markdown policy and information documents
 - Added a Billbow comment form and a configurable list of essential-reading links
 - Added a free, no-password sign-up form that collects mobile and email with required permission for updates and announcements
 - Added a visual Demodot Meter and an AI-estimated Democracy Index for original/final Bill alignment
+- Removed the Act as passed PDF button while retaining the embedded document and comparison feature
 - Added durable Billbow comment and opted-in contact storage, visible only through the password-protected owner review page
 - Added API credential loading from a local `.env` file or Streamlit secrets, and ignored local secrets and Python bytecode in Git
 - Updated this documentation with setup, behavior, security/privacy notes, limitations, and the original feature instructions
@@ -41,10 +43,10 @@ The project is currently grounded in a lightweight Python stack designed for exp
 
 ## Current implementation status
 
-The Streamlit application opens on a public landing page, and all three Bill features are available without signing in or registering. Navigation is configured in `app.py`, with each page implemented as a dedicated Streamlit page: the home page, Bill information, Democratic interaction, and Democracy Index.
+The Streamlit application opens on a public landing page, and all three Bill features are available without signing in or registering. Navigation is configured in `app.py`, with each page implemented as a dedicated Streamlit page: the home page, Bill Information, Democratic Engagement, and Democracy Index.
 
-1. **Bill information** — enter a Bill title, summary, background, and policy context; upload policy and information documents; add essential-reading links; and optionally draft a plain-language summary with AI.
-2. **Democratic interaction** — enter a Bill name to search Tasmanian Parliament records. The matching Bill as introduced PDF, second reading speech, fact sheet, and clause notes are retrieved and displayed. Then the user can ask AI-grounded questions using the material on the Bill information page and submit anonymous feedback.
+1. **Bill Information** — enter a Bill title, summary, background, and policy context; upload policy and information documents; add essential-reading links; and optionally draft a plain-language summary with AI.
+2. **Democratic Engagement** — enter a Bill name to search Tasmanian Parliament records. The matching Bill as introduced PDF, second reading speech, fact sheet, and clause notes are retrieved and displayed. Then the user can ask AI-grounded questions using the material on the Bill Information page and submit anonymous feedback.
 3. **Democracy Index** — search for a Bill on the Tasmanian Parliament website to view its introduced PDF and automatically find and view the corresponding Act as passed PDF. Use the **Compare documents** feature to generate a markup of changes and an AI-assisted alignment score.
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.

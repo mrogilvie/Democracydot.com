@@ -362,9 +362,6 @@ with st.container(border=True):
             height=640,
             key="act_as_passed_pdf_viewer",
         )
-        act_pdf_url = st.session_state.get("parliament_act_pdf_url")
-        if act_pdf_url:
-            st.link_button("Open Act as passed PDF", act_pdf_url)
     else:
         st.info(
             "Search Parliament records above to find and display the Act as passed PDF."
@@ -498,13 +495,28 @@ if compare_documents:
                 st.session_state["last_alignment"] = result
 
 if st.session_state.get("marked_up_html"):
-    st.download_button(
-        "Download marked-up comparison",
-        data=st.session_state["marked_up_html"],
-        file_name=st.session_state["marked_up_filename"],
-        mime="text/html",
-        key="download_marked_up_comparison",
+    st.link_button(
+        "Visit Madeleine Ogilvie MP on Facebook",
+        "https://www.facebook.com/MadeleineOgilvieMP/",
     )
+    st.caption(
+        "Downloads are available after you confirm that you follow Madeleine "
+        "Ogilvie MP on Facebook. This confirmation is not verified by Facebook."
+    )
+    follows_madeleine = st.checkbox(
+        "I follow Madeleine Ogilvie MP on Facebook",
+        key="follows_madeleine_ogilvie_mp",
+    )
+    if follows_madeleine:
+        st.download_button(
+            "Download marked-up comparison",
+            data=st.session_state["marked_up_html"],
+            file_name=st.session_state["marked_up_filename"],
+            mime="text/html",
+            key="download_marked_up_comparison",
+        )
+    else:
+        st.info("Confirm that you follow the Facebook page to enable this download.")
 
 previous = st.session_state.get("last_alignment")
 if isinstance(previous, dict):

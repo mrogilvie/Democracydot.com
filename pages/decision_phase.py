@@ -19,7 +19,7 @@ from demodot import (
 )
 
 
-st.title("Democratic interaction")
+st.title("Democratic Engagement")
 st.write("Ask questions with Billbow Q&A and send constituent feedback.")
 st.caption(
     "Questions and Bill source text are sent to OpenAI when you request an answer. "

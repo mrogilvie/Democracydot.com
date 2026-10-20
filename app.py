@@ -21,17 +21,17 @@ pages = {
     "Democracydot": [
         home_page,
         st.Page(
-            "pages/bill_information.py",
-            title="Bill information",
+            "pages/bill_interaction.py",
+            title="Bill Information",
             icon=":material/article:",
         ),
         st.Page(
-            "pages/bill_interaction.py",
-            title="Democratic interaction",
+            "pages/decision_phase.py",
+            title="Democratic Engagement",
             icon=":material/forum:",
         ),
         st.Page(
-            "pages/decision_phase.py",
+            "pages/bill_information.py",
             title="Democracy Index",
             icon=":material/how_to_vote:",
         ),

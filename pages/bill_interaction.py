@@ -13,7 +13,7 @@ from demodot import (
 )
 
 
-st.title("Bill information")
+st.title("Bill Information")
 st.write(
     "Build a clear information page for the Bill: its summary, background, "
     "policy context, and essential reading."
@@ -119,9 +119,12 @@ if add_link:
 
 links = st.session_state.get("essential_links", [])
 if isinstance(links, list):
-    for link in links:
+    for index, link in enumerate(links):
         if isinstance(link, dict) and link.get("label") and link.get("url"):
-            st.link_button(link["label"], link["url"])
+            label = link["label"]
+            if index == 0 and label == "Bill as passed":
+                label = "Bill as passed (if avail)"
+            st.link_button(label, link["url"])
 
 with st.expander("Draft a plain-language summary with AI"):
     if st.button("Draft summary from saved material", key="draft_bill_summary"):
@@ -147,3 +150,51 @@ with st.expander("Draft a plain-language summary with AI"):
                     st.markdown(response.output_text)
                 except OpenAIError as error:
                     report_openai_error(error)
+
+st.subheader("The public discussion")
+st.caption(
+    "AI searches the web for news coverage and public posts about this Bill and "
+    "summarises the sentiment it finds. Only the Bill name is sent to OpenAI."
+)
+if st.button("The public discussion", key="public_discussion"):
+    discussion_bill = st.session_state.get("bill_title", "").strip()
+    if not discussion_bill:
+        st.warning("Save a Bill name or number above first.")
+    else:
+        client = get_openai_client()
+        if client:
+            try:
+                with st.spinner("Searching media and social media..."):
+                    response = client.responses.create(
+                        model=MODEL,
+                        tools=[{"type": "web_search_preview"}],
+                        instructions=(
+                            "Search news media and publicly visible social media "
+                            "for discussion of the named Tasmanian Parliament Bill. "
+                            "Write a nonpartisan summary of public sentiment: "
+                            "overall tone, main arguments for and against, key "
+                            "stakeholders, and recurring concerns. Cite the "
+                            "sources used. State clearly when little or no "
+                            "discussion is found or when social media content "
+                            "could not be accessed. Do not invent sources or "
+                            "quotes, and do not present sentiment as a poll."
+                        ),
+                        input=f"Bill: {discussion_bill}",
+                        max_output_tokens=900,
+                    )
+                st.session_state["public_discussion_result"] = (
+                    discussion_bill,
+                    response.output_text,
+                )
+            except OpenAIError as error:
+                report_openai_error(error)
+
+result = st.session_state.get("public_discussion_result")
+if result:
+    st.markdown(f"**Public sentiment on {result[0]}**")
+    st.markdown(result[1])
+    st.caption(
+        "AI-generated from web search results. Coverage of social media is "
+        "partial and not representative of all constituents. Check the cited "
+        "sources."
+    )
