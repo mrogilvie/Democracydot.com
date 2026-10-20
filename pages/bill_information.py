@@ -33,6 +33,32 @@ PARLIAMENT_HOST = urlparse(PARLIAMENT_URL).hostname
 LEGISLATION_URL = "https://www.legislation.tas.gov.au"
 LEGISLATION_HOST = urlparse(LEGISLATION_URL).hostname
 LEGISLATION_SEARCH_URL = f"{LEGISLATION_URL}/projectdata"
+FACEBOOK_PAGE_URL = "https://www.facebook.com/MadeleineOgilvieMP/"
+FACEBOOK_FOLLOW_WIDGET_URL = (
+    "https://www.facebook.com/plugins/page.php?"
+    + urlencode(
+        {
+            "href": FACEBOOK_PAGE_URL,
+            "tabs": "",
+            "width": 340,
+            "height": 130,
+            "small_header": "true",
+            "adapt_container_width": "true",
+            "hide_cover": "false",
+            "show_facepile": "false",
+        }
+    )
+)
+
+
+@st.dialog("Follow Madeleine Ogilvie MP")
+def show_follow_dialog() -> None:
+    st.write(
+        "Please follow Madeleine Ogilvie MP on Facebook, then tick the "
+        "confirmation box on this page to unlock downloads."
+    )
+    st.iframe(FACEBOOK_FOLLOW_WIDGET_URL, height=140)
+    st.link_button("Open the Facebook page", FACEBOOK_PAGE_URL)
 
 
 def find_bill_record(bill_name: str) -> tuple[str, str]:
@@ -509,10 +535,11 @@ if st.session_state.get("marked_up_html"):
         )
         st.iframe(st.session_state["marked_up_html"], height=640)
 
-    st.link_button(
+    if st.button(
         "Visit Madeleine Ogilvie MP and follow to access downloads",
-        "https://www.facebook.com/MadeleineOgilvieMP/",
-    )
+        key="open_follow_dialog",
+    ):
+        show_follow_dialog()
     st.caption(
         "Downloads are available after you confirm that you follow Madeleine "
         "Ogilvie MP on Facebook. This confirmation is not verified by Facebook."
