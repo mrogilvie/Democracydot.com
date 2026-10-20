@@ -42,7 +42,13 @@ pages = {
             title="Privacy Policy",
             icon=":material/policy:",
             url_path="privacy",
-        )
+        ),
+        st.Page(
+            "pages/terms.py",
+            title="Terms and Conditions",
+            icon=":material/gavel:",
+            url_path="terms",
+        ),
     ],
     "App owner": [
         st.Page(
@@ -54,3 +60,10 @@ pages = {
 }
 
 st.navigation(pages).run()
+
+st.divider()
+st.caption(
+    "By browsing or using Democracydot you accept the "
+    "[Terms and Conditions](/terms). The app does not provide legal advice and "
+    "is used entirely at your own risk. See the [Privacy Policy](/privacy)."
+)

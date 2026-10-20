@@ -1,4 +1,6 @@
-# Democracydot
+OPENAI_API_KEY = "your key"
+DEMOCRACYDOT_OWNER_PASSWORD = "your password"OPENAI_API_KEY = "your key"
+DEMOCRACYDOT_OWNER_PASSWORD = "your password"# Democracydot
 
 Democracydot is an AI-supported civic technology project designed to make the legislative process more transparent, understandable, and engaging for the public. The goal is to turn dense policy and legal language into a clearer, more accessible understanding of what a Bill means, why it matters, and how it changes during parliamentary review.
 
