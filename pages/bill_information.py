@@ -216,6 +216,7 @@ def generate_process_report(client, bill_name: str, original: str, final: str) -
 def create_index_report_html(result: dict, report: dict | None, title: str) -> str:
     score = result["alignment_index"]
     level = alignment_level(score)
+    title = " ".join(w[:1].upper() + w[1:] for w in title.split())
     sections = []
     if report:
         for heading, key in (
@@ -236,6 +237,11 @@ def create_index_report_html(result: dict, report: dict | None, title: str) -> s
 <body>
 <h1>Democracy Index: {html.escape(title)}</h1>
 {meter_html(score, level)}
+<p><strong>What the Democracy Index measures:</strong> how closely the Act as passed
+matches the Bill as introduced, scored from 0 to 100 on whether the Act preserves the
+Bill's purpose and material provisions. A higher score means fewer substantive changes
+during the legislative process. It does not measure whether the law is good or whether
+the process was legitimate.</p>
 {''.join(sections)}
 <h2>Comparison report</h2><p>{html.escape(result["summary"])}</p>
 {f"<h3>Notable changes</h3><ul>{changes}</ul>" if changes else ""}
