@@ -296,12 +296,6 @@ if (
         else:
             st.info("No matching Final Act PDF is available.")
 
-links = st.session_state.get("essential_links", [])
-if isinstance(links, list):
-    for link in links:
-        if isinstance(link, dict) and link.get("label") and link.get("url"):
-            st.link_button(link["label"], link["url"])
-
 st.session_state["parliament_documents"] = []
 
 st.subheader("Billbow")
