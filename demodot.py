@@ -1,4 +1,5 @@
 import os
+import re
 from io import BytesIO
 from pathlib import Path
 from html.parser import HTMLParser
@@ -26,6 +27,8 @@ MAX_SOURCE_CHARS = 60_000
 PARLIAMENT_URL = "https://www.parliament.tas.gov.au/"
 PARLIAMENT_HOST = urlparse(PARLIAMENT_URL).hostname
 PARLIAMENT_SEARCH_URL = f"{PARLIAMENT_URL.rstrip('/')}/search-results"
+HANSARD_SEARCH_URL = "https://search.parliament.tas.gov.au/search/search/"
+HANSARD_CHAMBERS = ("House of Assembly", "Legislative Council")
 
 
 class _ParliamentLinkParser(HTMLParser):
@@ -265,3 +268,35 @@ def get_source_material() -> str:
     if len(combined) > MAX_SOURCE_CHARS:
         combined = combined[:MAX_SOURCE_CHARS]
     return combined
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def find_hansard_debate_links(bill_name: str) -> list[tuple[str, str]]:
+    """Return official Hansard search links for each chamber that debated the Bill."""
+    phrase = re.sub(r"\s*\(.*?\)\s*$", "", bill_name).strip()
+    phrase = re.sub(r"\s+\d{4}$", "", phrase)
+    if not phrase:
+        return []
+    links = []
+    for chamber in HANSARD_CHAMBERS:
+        query = urlencode(
+            {
+                "IW_DATABASE": "Hansard",
+                "IW_SORT": "-date",
+                "IW_FIELD_IN_AUTHOR": chamber,
+                "IW_FIELD_TEXT": f'"{phrase}"',
+            }
+        )
+        url = f"{HANSARD_SEARCH_URL}?{query}"
+        try:
+            request = Request(url, headers={"User-Agent": "Democracydot/1.0"})
+            with urlopen(request, timeout=15) as response:
+                if urlparse(response.geturl()).hostname != urlparse(HANSARD_SEARCH_URL).hostname:
+                    continue
+                page = response.read().decode("utf-8", errors="replace")
+        except (OSError, ValueError):
+            continue
+        found = re.search(r"isys_stats_docs'>(\d+)", page)
+        if found and int(found.group(1)) > 0:
+            links.append((f"Hansard debates: {chamber}", url))
+    return links

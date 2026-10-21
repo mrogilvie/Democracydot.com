@@ -11,6 +11,7 @@ from demodot import (
     PARLIAMENT_URL,
     extract_uploaded_text,
     fetch_official_pdf,
+    find_hansard_debate_links,
     find_parliament_bill_page,
     find_parliament_bill_pdf_url,
     get_openai_client,
@@ -227,6 +228,18 @@ if isinstance(links, list):
             if index == 0 and label == "Bill as passed":
                 label = "Bill as passed (if avail)"
             st.link_button(label, link["url"])
+
+hansard_bill = st.session_state.get("bill_title", "").strip()
+if hansard_bill:
+    hansard_links = find_hansard_debate_links(hansard_bill)
+    for label, url in hansard_links:
+        st.link_button(label, url)
+    st.caption(
+        "Hansard links are added automatically from the Parliament of Tasmania "
+        "Hansard search for this Bill name."
+        if hansard_links
+        else "No Hansard debates were found for this Bill name yet."
+    )
 
 with st.expander("Draft a plain-language summary with AI"):
     if st.button("Draft summary from saved material", key="draft_bill_summary"):
