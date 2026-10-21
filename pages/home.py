@@ -32,6 +32,8 @@ st.markdown(
       <p>
         The Democracy Index estimates how closely the Act reflects the Bill and
         helps you explore how the Bill changed during the democratic process.
+        To access download in Democracydot I ask you to follow my Facebook page
+        to assist with ongoing communication and discussion.
       </p>
     </section>
     """,
