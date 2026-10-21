@@ -683,22 +683,30 @@ def find_parliament_petitions(
 ) -> list[tuple[str, str]]:
     """Return (label, url) e-petitions on the Bill or its subject matter."""
     phrase, keywords = bill_subject_keywords(bill_name)
-    if not keywords:
+    petitions = load_petitions()
+    if not keywords or not petitions:
         return []
+    corpus = [(p["title"].casefold(), p["text"].casefold()) for p in petitions]
+    # Words found in many petitions (for example "health") are too generic.
+    rare = [
+        word
+        for word in keywords
+        if sum(1 for title, body in corpus if word in title or word in body)
+        <= max(3, len(corpus) // 12)
+    ]
     scored = []
-    for petition in load_petitions():
-        title = petition["title"].casefold()
-        body = petition["text"].casefold()
-        score = 0
-        if phrase and phrase in body:
-            score += 10
-        score += 3 * sum(1 for word in keywords if word in title)
-        score += sum(1 for word in keywords if word in body)
-        in_title = any(word in title for word in keywords)
-        enough = len(keywords) == 1 or in_title or phrase in body
-        matched = sum(1 for word in keywords if word in body or word in title)
-        if score and enough and matched >= min(2, len(keywords)):
-            scored.append((score, petition))
+    for petition, (title, body) in zip(petitions, corpus):
+        in_body = [word for word in rare if word in body or word in title]
+        in_title = [word for word in rare if word in title]
+        exact = bool(phrase) and phrase in body
+        enough = (
+            exact
+            or (len(rare) == 1 and bool(in_title))
+            or (len(in_body) >= 2 and bool(in_title))
+            or (len(rare) >= 2 and len(in_body) == len(rare))
+        )
+        if enough:
+            scored.append((10 * exact + 3 * len(in_title) + len(in_body), petition))
     scored.sort(key=lambda item: item[0], reverse=True)
     return [
         (f"Petition ({p['chamber']}): {p['title']}", p["url"])

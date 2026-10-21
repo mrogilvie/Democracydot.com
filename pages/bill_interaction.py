@@ -12,10 +12,12 @@ from demodot import (
     extract_uploaded_text,
     fetch_official_pdf,
     HANSARD_CHAMBERS,
+    PETITIONS_INFO_URL,
     fetch_hansard_bill_debate,
     find_hansard_debate_links,
     find_parliament_bill_page,
     find_parliament_bill_pdf_url,
+    find_parliament_petitions,
     get_openai_client,
     report_openai_error,
 )
@@ -196,10 +198,33 @@ if entered_bill and hansard_links:
 elif entered_bill:
     st.caption("No Hansard debates were found for this Bill name yet.")
 
+petition_links = []
+if entered_bill:
+    try:
+        with st.spinner("Searching Parliament e-petitions..."):
+            petition_links = find_parliament_petitions(hansard_name)
+    except (OSError, ValueError):
+        petition_links = []
+for label, url in petition_links:
+    st.link_button(label, url)
+if petition_links:
+    st.caption(
+        "Petitions are matched automatically from the House of Assembly and "
+        "Legislative Council e-petition sites using the Bill name and its "
+        "subject matter. Check each petition to confirm it is relevant."
+    )
+elif entered_bill:
+    st.caption(
+        "No e-petitions on this Bill or its subject matter were found. "
+        "Paper petitions are not searched."
+    )
+    st.link_button("Browse Parliament petitions", PETITIONS_INFO_URL)
+
 essential_links = []
 if bill_record:
     essential_links.append({"label": bill_record[0], "url": bill_record[1]})
 essential_links.extend({"label": l, "url": u} for l, u in hansard_links)
+essential_links.extend({"label": l, "url": u} for l, u in petition_links)
 st.session_state["essential_links"] = essential_links
 
 st.subheader("Create Hansard AI summary")
