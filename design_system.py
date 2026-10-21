@@ -77,6 +77,28 @@ def apply_design_system() -> None:
             border-color: var(--cornflower);
             box-shadow: 0 0 0 2px rgba(100, 149, 237, .18);
         }
+        [data-testid="stTextInput"] [data-baseweb="input"]:focus-within,
+        [data-testid="stTextInput"] [data-baseweb="base-input"]:focus-within,
+        [data-testid="stTextArea"] [data-baseweb="textarea"]:focus-within {
+            border-color: var(--pink) !important;
+            box-shadow: 0 0 0 1px var(--pink) !important;
+        }
+        [data-testid="stTextInput"] input:focus,
+        [data-testid="stTextArea"] textarea:focus {
+            border-color: var(--pink) !important;
+            box-shadow: none !important;
+            caret-color: var(--pink);
+        }
+        [data-testid="stTextInput"] input:disabled {
+            -webkit-text-fill-color: var(--marine) !important;
+            color: var(--marine) !important;
+            font-weight: 600;
+            opacity: 1 !important;
+            background: #eef3fb !important;
+        }
+        [data-testid="stTextInput"]:has(input:disabled) {
+            opacity: 1 !important;
+        }
         [data-testid="stForm"] {
             background: rgba(255, 255, 255, .75);
             border: 1px solid var(--line);
