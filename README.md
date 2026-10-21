@@ -49,7 +49,7 @@ The project is currently grounded in a lightweight Python stack designed for exp
 
 The Streamlit application opens on a public landing page, and all three Bill features are available without signing in or registering. Navigation is configured in `app.py`, with each page implemented as a dedicated Streamlit page: the home page, Bill Information, Democratic Engagement, and Democracy Index.
 
-1. **Bill Information** — enter a Bill title and press Enter to retrieve the Bill from Tasmanian Parliament records and draft any empty summary, background, and policy context fields (existing text is kept, and the draft should be reviewed); or enter them yourself. Upload policy and information documents, add essential-reading links (Hansard debate links for the Bill are added automatically), and optionally draft a plain-language summary with AI.
+1. **Bill Information** — enter a Bill title and press Enter to retrieve the Bill from Tasmanian Parliament records and draft any empty summary, background, and policy context fields (existing text is kept, and the draft should be reviewed); or enter them yourself. Add essential-reading links (Hansard debate links for the Bill are added automatically), and optionally draft a plain-language summary with AI.
 2. **Democratic Engagement** — enter a Bill name to search Tasmanian Parliament records. The matching Bill as introduced PDF, second reading speech, fact sheet, and clause notes are retrieved and displayed. Then the user can ask AI-grounded questions using the material on the Bill Information page and submit anonymous feedback.
 3. **Democracy Index** — enter a Bill name on the Tasmanian Parliament website search to view its introduced PDF and automatically find and view the corresponding Act as passed PDF. The search starts when the name is entered. Use the **Compare document** button to see the compared document on screen with changes marked, and to get an AI-assisted alignment score. Downloading the marked-up comparison requires the user to confirm they follow Madeleine Ogilvie MP on Facebook; this is a self-declaration and is not verified.
 
@@ -95,7 +95,7 @@ After completing the development setup, start the Streamlit app from the reposit
 streamlit run app.py
 ```
 
-Streamlit prints a local URL in the terminal. Open that URL in a browser to use the app and move between pages in the sidebar; no sign-in is required. Bill details, uploaded source text, and links are retained in the session, while comments and sign-ups are stored in the local SQLite database.
+Streamlit prints a local URL in the terminal. Open that URL in a browser to use the app and move between pages in the sidebar; no sign-in is required. Bill details and links are retained in the session, while comments and sign-ups are stored in the local SQLite database.
 
 ## Repository layout
 
@@ -106,7 +106,7 @@ demodot.py                  Shared OpenAI, source-text, and Bill-session helpers
 comment_store.py            SQLite persistence for anonymous Billbow submissions
 pages/
   home.py                   App overview and links into the three stages
-  bill_interaction.py       Page 1, Bill Information: details, uploads, links, and optional summary
+  bill_interaction.py       Page 1, Bill Information: details, links, and optional summary
   decision_phase.py         Page 2, Democratic Engagement: Billbow comments and Bill-grounded Q&A
   bill_information.py       Page 3, Democracy Index: Bill comparison, markup, and Demodot Meter
   privacy.py                Privacy Policy page, rendered from PRIVACY.md

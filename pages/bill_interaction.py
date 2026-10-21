@@ -95,7 +95,6 @@ st.caption(
     "or when you enter a Bill name. Add only material you are authorized to share."
 )
 
-st.link_button("Tasmanian Parliament website", PARLIAMENT_URL)
 st.caption(
     "Add the Bill-specific Parliament and Hansard links under Essential reading."
 )
@@ -161,44 +160,6 @@ if saved:
     st.session_state["bill_policy"] = policy.strip()
     st.success("Bill information saved for this app session.")
 
-st.subheader("Source documents")
-st.caption("Upload selectable-text PDFs, plain text, or Markdown documents.")
-policy_files = st.file_uploader(
-    "Policy documents",
-    type=["pdf", "txt", "md"],
-    accept_multiple_files=True,
-    max_upload_size=10,
-    key="policy_documents",
-)
-information_files = st.file_uploader(
-    "Background and information documents",
-    type=["pdf", "txt", "md"],
-    accept_multiple_files=True,
-    max_upload_size=10,
-    key="information_documents",
-)
-
-documents = []
-for category, files in (
-    ("Policy", policy_files),
-    ("Information", information_files),
-):
-    for uploaded_file in files:
-        try:
-            text = extract_uploaded_text(uploaded_file.name, uploaded_file.getvalue())
-        except ValueError as error:
-            st.error(str(error))
-            continue
-        documents.append(
-            {"category": category, "name": uploaded_file.name, "text": text}
-        )
-st.session_state["source_documents"] = documents
-
-if documents:
-    st.write(f"{len(documents)} source document(s) ready for the other stages.")
-else:
-    st.info("No source documents uploaded yet.")
-
 st.subheader("Essential reading")
 with st.form("essential_link_form", clear_on_submit=True):
     link_label = st.text_input("Link title", placeholder="Bill page or Hansard")
@@ -245,7 +206,7 @@ with st.expander("Draft a plain-language summary with AI"):
     if st.button("Draft summary from saved material", key="draft_bill_summary"):
         source = get_source_material()
         if not source:
-            st.warning("Add summary, background, policy text, or source documents first.")
+            st.warning("Add summary, background, or policy text first.")
         else:
             client = get_openai_client()
             if client:
@@ -313,3 +274,6 @@ if result:
         "partial and not representative of all constituents. Check the cited "
         "sources."
     )
+
+st.divider()
+st.link_button("Tasmanian Parliament website", PARLIAMENT_URL)
