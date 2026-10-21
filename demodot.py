@@ -421,3 +421,11 @@ def sync_session_bill(widget_key: str, marker_key: str) -> bool:
     st.session_state[widget_key] = bill
     st.session_state[marker_key] = bill
     return True
+
+
+def publish_session_bill(widget_key: str, marker_key: str) -> None:
+    """Share a Bill typed on this page with every other page for the session."""
+    bill = st.session_state.get(widget_key, "").strip()
+    if bill and bill != st.session_state.get("bill_title", "").strip():
+        st.session_state["bill_title"] = bill
+        st.session_state[marker_key] = bill

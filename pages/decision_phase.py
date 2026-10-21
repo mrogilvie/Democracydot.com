@@ -16,6 +16,7 @@ from demodot import (
     get_openai_client,
     get_source_material,
     report_openai_error,
+    publish_session_bill,
     sync_session_bill,
 )
 
@@ -39,6 +40,7 @@ searched_bill_name = st.text_input(
     help="Press Enter to search Parliament records. Filled in from the Bill you "
     "entered on Bill Information.",
 )
+publish_session_bill("parliament_bill_name", "page2_synced_bill")
 if st.session_state.pop("interaction_search_requested", False) or auto_search:
     if not searched_bill_name.strip():
         st.warning("Enter a Bill name to search Parliament records.")
@@ -154,10 +156,8 @@ st.session_state["parliament_documents"] = []
 
 st.subheader("Billbow Q&A")
 st.caption(
-    "Billbow uses AI to answer questions about Bills before the Tasmanian "
-    "Parliament, grounded in retrieved Parliament documents and material added on the "
-    "Bill information page. Source materials can include the Bill as introduced, "
-    "the second reading speech, the fact sheet, and clause notes."
+    "Billbow allows you to ask specific questions about the Bill. Billbow will load "
+    "the relevant parliamentary documents and use them to generate AI supported answers."
 )
 def request_question() -> None:
     st.session_state["question_requested"] = True

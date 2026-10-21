@@ -18,6 +18,7 @@ from demodot import (
     find_parliament_bill_pdf_url,
     get_openai_client,
     report_openai_error,
+    publish_session_bill,
     sync_session_bill,
 )
 from follow_dialog import show_follow_dialog
@@ -284,6 +285,7 @@ bill_name = st.text_input(
     key="parliament_bill_search_input",
     on_change=request_parliament_search,
 )
+publish_session_bill("parliament_bill_search_input", "page3_synced_bill")
 search_bill = st.session_state.pop("parliament_search_requested", False)
 
 if search_bill:
