@@ -305,7 +305,7 @@ def find_hansard_debate_links(bill_name: str) -> list[tuple[str, str]]:
 
 HANSARD_MAX_DOCUMENTS = 6
 HANSARD_MAX_DOWNLOAD_BYTES = 25 * 1024 * 1024
-HANSARD_MAX_SECTION_CHARS = 45000
+HANSARD_MAX_CHAMBER_CHARS = 60000
 
 
 def _hansard_search_phrase(bill_name: str) -> str:
@@ -381,5 +381,23 @@ def fetch_hansard_bill_debate(bill_name: str, chamber: str) -> list[tuple[str, s
             continue
         if sections:
             sitting = unquote(path.rsplit("/", 1)[-1]).removesuffix(".docx")
-            results.append((sitting, "\n\n".join(sections)))
-    return results
+            text = "\n\n".join(sections)
+            if all(text != existing for _, existing in results):
+                results.append((sitting, text))
+    return _fit_hansard_budget(results)
+
+
+def _fit_hansard_budget(results: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    """Share the character budget between sitting days, trimming the middle."""
+    total = sum(len(text) for _, text in results)
+    if total <= HANSARD_MAX_CHAMBER_CHARS:
+        return results
+    fitted = []
+    for sitting, text in results:
+        allowance = max(500, HANSARD_MAX_CHAMBER_CHARS * len(text) // total)
+        if len(text) > allowance:
+            head = allowance * 6 // 10
+            tail = allowance - head
+            text = f"{text[:head]}\n[... debate text trimmed ...]\n{text[-tail:]}"
+        fitted.append((sitting, text))
+    return fitted

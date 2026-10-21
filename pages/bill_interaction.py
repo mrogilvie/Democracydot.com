@@ -10,6 +10,8 @@ from demodot import (
     PARLIAMENT_URL,
     extract_uploaded_text,
     fetch_official_pdf,
+    HANSARD_CHAMBERS,
+    fetch_hansard_bill_debate,
     find_hansard_debate_links,
     find_parliament_bill_page,
     find_parliament_bill_pdf_url,
@@ -182,7 +184,8 @@ st.text_input(
 if entered_bill and not bill_record:
     st.caption("No matching Bill was found in Tasmanian Parliament records.")
 
-hansard_links = find_hansard_debate_links(entered_bill) if entered_bill else []
+hansard_name = bill_record[0] if bill_record else entered_bill
+hansard_links = find_hansard_debate_links(hansard_name) if entered_bill else []
 for label, url in hansard_links:
     st.link_button(label, url)
 if entered_bill and hansard_links:
