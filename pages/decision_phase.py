@@ -159,11 +159,18 @@ st.caption(
     "Bill information page. Source materials can include the Bill as introduced, "
     "the second reading speech, the fact sheet, and clause notes."
 )
-with st.form("bill_question_form"):
-    question = st.text_area("Ask a question about the Bill", height=100)
-    ask_question = st.form_submit_button("Ask about this Bill")
+def request_question() -> None:
+    st.session_state["question_requested"] = True
 
-if ask_question:
+
+question = st.text_input(
+    "Ask a question about the Bill",
+    key="bill_question_input",
+    on_change=request_question,
+    help="Press Enter to ask.",
+)
+
+if st.session_state.pop("question_requested", False):
     source = get_source_material()
     if not question.strip():
         st.warning("Enter a question first.")
@@ -189,9 +196,16 @@ if ask_question:
                         input=f"Legislative material:\n{source}\n\nQuestion:\n{question.strip()}",
                         max_output_tokens=900,
                     )
-                st.markdown(response.output_text)
+                st.session_state["billbow_answer"] = (
+                    question.strip(),
+                    response.output_text,
+                )
             except OpenAIError as error:
                 report_openai_error(error)
+
+billbow_answer = st.session_state.get("billbow_answer")
+if billbow_answer and billbow_answer[0] == question.strip():
+    st.markdown(billbow_answer[1])
 
 st.subheader("Constituent feedback")
 st.caption(
@@ -204,12 +218,20 @@ comment_bill = (
 )
 if comment_bill:
     st.caption(f"Your comment will be saved against: **{comment_bill}**")
-with st.container():
-    comment = st.chat_input(
-        "What would you like decision-makers to understand about this Bill? "
-        "Press Enter to send.",
-        key="constituent_comment",
+def request_comment() -> None:
+    st.session_state["pending_comment"] = st.session_state.get(
+        "constituent_comment_input", ""
     )
+    st.session_state["constituent_comment_input"] = ""
+
+
+st.text_input(
+    "What would you like decision-makers to understand about this Bill?",
+    key="constituent_comment_input",
+    on_change=request_comment,
+    help="Press Enter to send your comment.",
+)
+comment = st.session_state.pop("pending_comment", "")
 
 if comment:
     if not comment_bill:
