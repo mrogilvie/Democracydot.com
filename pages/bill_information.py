@@ -235,11 +235,12 @@ def create_index_report_html(result: dict, report: dict | None, title: str) -> s
 .score{{font-size:1.4rem;font-weight:700}}</style></head>
 <body>
 <h1>Democracy Index: {html.escape(title)}</h1>
-<p class="score">{score}/100 &middot; {html.escape(level)}</p>
+{meter_html(score, level)}
 {''.join(sections)}
 <h2>Comparison report</h2><p>{html.escape(result["summary"])}</p>
 {f"<h3>Notable changes</h3><ul>{changes}</ul>" if changes else ""}
 <p><em>{html.escape(result["evidence_note"])}</em></p>
+<p><small>This document was produced via Democracydot (www.democracydot.com) and its use is subject to the Democracydot Terms and Conditions.</small></p>
 <p><small>AI-assisted estimate; not an official parliamentary rating or a measure of democratic legitimacy.</small></p>
 </body></html>
 """
@@ -252,7 +253,7 @@ def alignment_level(score: int) -> str:
     raise ValueError("Alignment score must be between 0 and 100.")
 
 
-def render_meter(score: int, level: str) -> None:
+def meter_html(score: int, level: str) -> str:
     colors = ["#bd4b42", "#e58b3c", "#e4c34c", "#9dbb55", "#4b9470", "#176b5b"]
     stops = []
     for index, color in enumerate(colors):
@@ -260,8 +261,7 @@ def render_meter(score: int, level: str) -> None:
         end = (index + 1) * 100 / len(colors)
         stops.append(f"{color} {start:.2f}% {end:.2f}%")
     gradient = ", ".join(stops)
-    st.markdown(
-        f"""
+    return f"""
         <div class="demodot-meter">
           <div class="meter-heading">Demodot Meter</div>
           <div class="meter-index">Democratic Measure
@@ -337,9 +337,11 @@ def render_meter(score: int, level: str) -> None:
             .meter-labels {{ font-size: .58rem; }}
           }}
         </style>
-        """,
-        unsafe_allow_html=True,
-    )
+        """
+
+
+def render_meter(score: int, level: str) -> None:
+    st.markdown(meter_html(score, level), unsafe_allow_html=True)
 
 
 st.title("Democracy Index")
