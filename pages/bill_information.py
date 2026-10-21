@@ -581,6 +581,69 @@ if (
     else:
         st.session_state["final_bill_text"] = corrected_act_text
 
+with st.container(border=True):
+    st.subheader("Compare document")
+    st.caption(
+        "Generate a document that marks every change between the introduced "
+        "Bill and the Act as passed. To generate and download it, please follow "
+        "Madeleine Ogilvie MP on Facebook and confirm below. This confirmation "
+        "is not verified by Facebook."
+    )
+    if st.button(
+        "Visit Madeleine Ogilvie MP and follow to access downloads",
+        key="open_follow_dialog",
+    ):
+        show_follow_dialog()
+    follows_madeleine = st.checkbox(
+        "I follow Madeleine Ogilvie MP on Facebook",
+        key="follows_madeleine_ogilvie_mp",
+    )
+    generate_compare = st.button(
+        "Generate compare document",
+        key="generate_compare_document",
+        disabled=not follows_madeleine,
+    )
+    if not follows_madeleine:
+        st.info("Confirm that you follow the Facebook page to enable this button.")
+
+    if generate_compare:
+        compare_original = st.session_state.get("original_bill_text", "")
+        compare_act = st.session_state.get("final_bill_text", "")
+        compare_title = st.session_state.get("parliament_bill_search_name", "")
+        st.session_state.pop("marked_up_html", None)
+        st.session_state.pop("marked_up_filename", None)
+        if not compare_title or not str(compare_original).strip():
+            st.warning("Search Parliament records to retrieve the Bill first.")
+        elif not str(compare_act).strip():
+            st.info(
+                "No Act has been passed for this Bill yet, so there is nothing "
+                "to compare it with."
+            )
+        else:
+            st.session_state["marked_up_html"] = create_marked_up_html(
+                compare_original, compare_act, compare_title
+            )
+            safe_compare_title = re.sub(
+                r"[^A-Za-z0-9]+", "-", compare_title
+            ).strip("-").lower()
+            st.session_state["marked_up_filename"] = (
+                f"{safe_compare_title or 'Bill'}-marked-up.html"
+            )
+
+    if follows_madeleine and st.session_state.get("marked_up_html"):
+        st.caption(
+            "Red text was removed from the introduced Bill; green text was added "
+            "in the Act as passed."
+        )
+        st.iframe(st.session_state["marked_up_html"], height=640)
+        st.download_button(
+            "Download compare document",
+            data=st.session_state["marked_up_html"],
+            file_name=st.session_state["marked_up_filename"],
+            mime="text/html",
+            key="download_marked_up_comparison",
+        )
+
 st.caption(
     "The Democracy Index is an AI-assisted estimate of substantive similarity, "
     "not an official parliamentary rating or a measure of democratic legitimacy."
@@ -588,7 +651,7 @@ st.caption(
 
 compare_documents = st.button(
     "Create Democracy Index",
-    key="compare_documents_and_show_markup",
+    key="create_democracy_index",
 )
 st.caption("Please do not close the browser while the request is processing.")
 timer_placeholder = st.empty()
@@ -600,8 +663,6 @@ if compare_documents:
     final_bill = st.session_state.get("final_bill_text", "")
     st.session_state.pop("last_alignment", None)
     st.session_state.pop("process_report", None)
-    st.session_state.pop("marked_up_html", None)
-    st.session_state.pop("marked_up_filename", None)
 
     title = st.session_state.get("parliament_bill_search_name", "")
     has_original = isinstance(original_bill, str) and bool(original_bill.strip())
@@ -621,15 +682,6 @@ if compare_documents:
         client = get_openai_client()
         if client:
             if has_original and has_act:
-                st.session_state["marked_up_html"] = create_marked_up_html(
-                    original_bill,
-                    final_bill,
-                    title,
-                )
-                safe_title = re.sub(r"[^A-Za-z0-9]+", "-", title).strip("-").lower()
-                st.session_state["marked_up_filename"] = (
-                    f"{safe_title or 'Bill'}-marked-up.html"
-                )
                 schema = {
                     "type": "object",
                     "properties": {
@@ -714,39 +766,6 @@ if compare_documents:
                 st.error(f"Could not build the process report: {error}")
 
 timer_placeholder.empty()
-
-if st.session_state.get("marked_up_html"):
-    with st.container(border=True):
-        st.subheader("Compared document")
-        st.caption(
-            "Red text was removed from the introduced Bill; green text was added "
-            "in the Act as passed."
-        )
-        st.iframe(st.session_state["marked_up_html"], height=640)
-
-    if st.button(
-        "Visit Madeleine Ogilvie MP and follow to access downloads",
-        key="open_follow_dialog",
-    ):
-        show_follow_dialog()
-    st.caption(
-        "Downloads are available after you confirm that you follow Madeleine "
-        "Ogilvie MP on Facebook. This confirmation is not verified by Facebook."
-    )
-    follows_madeleine = st.checkbox(
-        "I follow Madeleine Ogilvie MP on Facebook",
-        key="follows_madeleine_ogilvie_mp",
-    )
-    if follows_madeleine:
-        st.download_button(
-            "Download marked-up comparison",
-            data=st.session_state["marked_up_html"],
-            file_name=st.session_state["marked_up_filename"],
-            mime="text/html",
-            key="download_marked_up_comparison",
-        )
-    else:
-        st.info("Confirm that you follow the Facebook page to enable this download.")
 
 previous = st.session_state.get("last_alignment")
 report = st.session_state.get("process_report")
