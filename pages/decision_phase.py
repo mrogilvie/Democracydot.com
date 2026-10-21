@@ -27,13 +27,19 @@ st.caption(
     "Add only material you are authorized to share."
 )
 
+def request_interaction_search() -> None:
+    st.session_state["interaction_search_requested"] = True
+
+
 auto_search = sync_session_bill("parliament_bill_name", "page2_synced_bill")
 searched_bill_name = st.text_input(
     "Enter Bill name",
     key="parliament_bill_name",
-    help="Filled in from the Bill you entered on Bill Information.",
+    on_change=request_interaction_search,
+    help="Press Enter to search Parliament records. Filled in from the Bill you "
+    "entered on Bill Information.",
 )
-if st.button("Search Parliament Bills", key="search_interaction_bill") or auto_search:
+if st.session_state.pop("interaction_search_requested", False) or auto_search:
     if not searched_bill_name.strip():
         st.warning("Enter a Bill name to search Parliament records.")
     else:

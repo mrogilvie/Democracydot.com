@@ -279,7 +279,6 @@ if sync_session_bill("parliament_bill_search_input", "page3_synced_bill"):
 
 bill_name = st.text_input(
     "Bill name",
-    value=st.session_state.get("bill_title", ""),
     placeholder="For example, Conversion Practices Prohibition Bill 2026",
     help="Type the Bill name and press Enter to search Parliament records.",
     key="parliament_bill_search_input",
