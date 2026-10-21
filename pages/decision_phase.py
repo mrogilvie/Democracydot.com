@@ -237,6 +237,10 @@ if (
     with st.container(border=True):
         st.subheader("5. Final Act and passage status")
         st.link_button("Open official Bill status record", bill_page_url)
+        st.caption(
+            "Status is taken from the official Parliament Bill record. An asterisk "
+            "on a second-reading stage marks the speech date."
+        )
         bill_status = st.session_state.get("interaction_bill_status")
         if isinstance(bill_status, dict):
             st.write(f"**Summary:** {summarize_bill_status(bill_status)}")
