@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import zipfile
@@ -29,6 +30,9 @@ MAX_SOURCE_CHARS = 60_000
 PARLIAMENT_URL = "https://www.parliament.tas.gov.au/"
 PARLIAMENT_HOST = urlparse(PARLIAMENT_URL).hostname
 PARLIAMENT_SEARCH_URL = f"{PARLIAMENT_URL.rstrip('/')}/search-results"
+LEGISLATION_URL = "https://www.legislation.tas.gov.au"
+LEGISLATION_HOST = urlparse(LEGISLATION_URL).hostname
+LEGISLATION_SEARCH_URL = f"{LEGISLATION_URL}/projectdata"
 HANSARD_SEARCH_URL = "https://search.parliament.tas.gov.au/search/search/"
 HANSARD_CHAMBERS = ("House of Assembly", "Legislative Council")
 
@@ -58,6 +62,48 @@ class _ParliamentLinkParser(HTMLParser):
             self.links.append((self.href, " ".join(self.label)))
             self.href = None
             self.label = []
+
+
+class _BillStatusTableParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.in_table = False
+        self.current_row: list[str] | None = None
+        self.current_cell: list[str] | None = None
+        self.rows: list[list[str]] = []
+        self.status_rows: list[list[str]] = []
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        if tag == "table" and not self.in_table:
+            self.in_table = True
+            self.rows = []
+        elif self.in_table and tag == "tr":
+            self.current_row = []
+        elif self.in_table and tag in ("th", "td"):
+            self.current_cell = []
+
+    def handle_data(self, data: str) -> None:
+        if self.current_cell is not None:
+            self.current_cell.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if self.in_table and tag in ("th", "td") and self.current_cell is not None:
+            self.current_row.append(" ".join(" ".join(self.current_cell).split()))
+            self.current_cell = None
+        elif self.in_table and tag == "tr" and self.current_row is not None:
+            self.rows.append(self.current_row)
+            self.current_row = None
+        elif self.in_table and tag == "table":
+            headers = self.rows[0] if self.rows else []
+            if (
+                len(headers) >= 4
+                and headers[0].casefold().startswith("house of assembly")
+                and headers[2].casefold().startswith("legislative council")
+            ):
+                self.status_rows = self.rows
+            self.in_table = False
 
 
 def get_openai_client() -> OpenAI | None:
@@ -118,6 +164,148 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
         ):
             return bill_url, label
     raise ValueError(f"No Parliament Bill record was found for {bill_name!r}.")
+
+
+def get_parliament_bill_status(bill_page_url: str) -> dict[str, dict[str, str | bool | None] | str | None]:
+    parsed_bill_url = urlparse(bill_page_url)
+    if (
+        parsed_bill_url.scheme != "https"
+        or parsed_bill_url.hostname != PARLIAMENT_HOST
+        or not parsed_bill_url.path.startswith("/bills/")
+    ):
+        raise ValueError("The Bill record is not on the official Parliament website.")
+
+    request = Request(bill_page_url, headers={"User-Agent": "Democracydot/1.0"})
+    with urlopen(request, timeout=15) as response:
+        final_url = urlparse(response.geturl())
+        if final_url.scheme != "https" or final_url.hostname != PARLIAMENT_HOST:
+            raise ValueError(
+                "The Parliament website redirected to an unexpected address."
+            )
+        page = response.read().decode("utf-8")
+
+    parser = _BillStatusTableParser()
+    parser.feed(page)
+    if not parser.status_rows:
+        raise ValueError("The Parliament Bill record does not include a status table.")
+
+    houses: dict[str, dict[str, str | bool | None]] = {}
+    for key, stage_column, date_column in (
+        ("house_of_assembly", 0, 1),
+        ("legislative_council", 2, 3),
+    ):
+        latest_stage = None
+        latest_date = None
+        passed_date = None
+        negatived_date = None
+        for row in parser.status_rows[1:]:
+            if len(row) <= date_column:
+                continue
+            stage = row[stage_column].strip()
+            date = row[date_column].strip()
+            if not stage or not date:
+                continue
+            if stage.casefold().startswith("third reading"):
+                passed_date = date
+            elif stage.casefold().startswith("negatived"):
+                negatived_date = date
+            if date not in ("-", "—", "–"):
+                latest_stage = stage
+                latest_date = date
+        houses[key] = {
+            "passed_date": passed_date,
+            "latest_stage": latest_stage,
+            "latest_date": latest_date,
+            "negatived_date": negatived_date,
+        }
+
+    royal_assent_date = None
+    for row in parser.status_rows[1:]:
+        if row and row[0].casefold().startswith("royal assent") and len(row) > 1:
+            date = row[1].strip()
+            if date and date not in ("-", "—", "–"):
+                royal_assent_date = date
+            break
+
+    return {
+        "house_of_assembly": houses["house_of_assembly"],
+        "legislative_council": houses["legislative_council"],
+        "royal_assent_date": royal_assent_date,
+    }
+
+
+def parliament_bill_act_title(bill_record_title: str) -> str:
+    clean_bill_title = re.sub(
+        r"\s+\(\d+\s+of\s+\d{4}\)$", "", bill_record_title
+    )
+    act_title, replacements = re.subn(
+        r"\bBill(?=(?:\s+\d{4})?$)",
+        "Act",
+        clean_bill_title,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+    if replacements == 0:
+        raise ValueError("The Parliament record does not identify a matching Bill title.")
+    return act_title
+
+
+def find_act_pdf_url(act_title: str) -> str:
+    expression = f'(PrintType="act.new") AND Title="{act_title}"'
+    query = urlencode(
+        {
+            "ds": "EnAct-FragTocRelationIdxDatasource",
+            "start": 1,
+            "count": 10,
+            "expression": expression,
+        }
+    )
+    request_url = f"{LEGISLATION_SEARCH_URL}?{query}"
+    request = Request(
+        request_url,
+        headers={
+            "User-Agent": "Democracydot/1.0",
+            "X-Requested-With": "XMLHttpRequest",
+        },
+    )
+    with urlopen(request, timeout=15) as response:
+        final_url = urlparse(response.geturl())
+        if final_url.scheme != "https" or final_url.hostname != LEGISLATION_HOST:
+            raise ValueError(
+                "The legislation website redirected to an unexpected address."
+            )
+        result = json.loads(response.read().decode("utf-8"))
+
+    if not isinstance(result, dict):
+        raise ValueError("The legislation search returned an invalid result.")
+    records = result.get("data", [])
+    if isinstance(records, dict):
+        records = [records]
+    if not isinstance(records, list):
+        raise ValueError("The legislation search returned an invalid result.")
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        title_field = record.get("title")
+        id_field = record.get("id")
+        print_type_field = record.get("print.type")
+        if not all(
+            isinstance(field, dict)
+            for field in (title_field, id_field, print_type_field)
+        ):
+            continue
+        title = title_field.get("__value__")
+        act_id = id_field.get("__value__")
+        print_type = print_type_field.get("__value__")
+        if (
+            isinstance(title, str)
+            and title.casefold() == act_title.casefold()
+            and isinstance(act_id, str)
+            and re.fullmatch(r"act-\d{4}-\d{3}", act_id)
+            and print_type == "act.new"
+        ):
+            return f"{LEGISLATION_URL}/view/pdf/asmade/{act_id}"
+    raise ValueError(f"No Act as passed PDF was found for {act_title!r}.")
 
 
 def find_parliament_bill_document_urls(
