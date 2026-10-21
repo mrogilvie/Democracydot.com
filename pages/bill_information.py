@@ -103,7 +103,7 @@ def countdown_html(seconds: int) -> str:
     return f"""<div style="font:16px system-ui,sans-serif;color:#172033">
   <strong>Estimated time remaining:</strong> <span id="t"></span>
   <div style="background:#e2e8f0;border-radius:6px;height:8px;margin-top:8px">
-    <div id="bar" style="background:#176b5b;border-radius:6px;height:8px;width:100%"></div></div>
+    <div id="bar" style="background:#ec4899;border-radius:6px;height:8px;width:100%"></div></div>
 </div>
 <script>
   const total = {seconds};
