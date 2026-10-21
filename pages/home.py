@@ -45,14 +45,20 @@ st.markdown(
 st.markdown(
     """
     <style>
-      [data-testid="stColumn"]:has([class*="st-key-dd-home-card-"]),
+      [data-testid="stHorizontalBlock"]:has([class*="st-key-dd-home-card-"]) {
+        align-items: stretch;
+      }
+      [data-testid="stColumn"]:has([class*="st-key-dd-home-card-"]) {
+        display: flex;
+        flex-direction: column;
+      }
       [data-testid="stColumn"]:has([class*="st-key-dd-home-card-"]) > [data-testid="stVerticalBlock"],
-      [class*="st-key-dd-home-card-"] {
-        height: 100%;
+      [data-testid="stColumn"]:has([class*="st-key-dd-home-card-"]) [data-testid="stLayoutWrapper"] {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
       }
-      @media (min-width: 640px) {
-        [class*="st-key-dd-home-card-"] { min-height: 17rem; }
-      }
+      [class*="st-key-dd-home-card-"] { flex: 1 1 auto; }
     </style>
     """,
     unsafe_allow_html=True,
