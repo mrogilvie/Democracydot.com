@@ -2,6 +2,7 @@ import json
 import os
 import re
 import zipfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from pathlib import Path
@@ -635,7 +636,7 @@ def bill_subject_keywords(bill_name: str) -> tuple[str, list[str]]:
 
 def _fetch_petition_page(url: str, allowed_host: str) -> str:
     request = Request(url, headers={"User-Agent": "Democracydot/1.0"})
-    with urlopen(request, timeout=15) as response:
+    with urlopen(request, timeout=8) as response:
         if urlparse(response.geturl()).hostname != allowed_host:
             raise ValueError("Unexpected redirect from the e-petitions site.")
         return response.read().decode("utf-8", errors="replace")
@@ -646,9 +647,11 @@ def _petition_text(page: str) -> str:
     return " ".join(html_unescape(re.sub(r"<[^>]+>", " ", page)).split())
 
 
+PETITION_LOAD_SECONDS = 45
+
+
 @st.cache_data(ttl=6 * 3600, show_spinner=False)
-def load_petitions() -> list[dict[str, str]]:
-    """Load every open and closed e-petition from both chambers, with its text."""
+def _load_petitions_cached() -> list[dict[str, str | int]]:
     entries = []
     for chamber, base in PETITION_SITES.items():
         host = urlparse(base).hostname
@@ -666,22 +669,41 @@ def load_petitions() -> list[dict[str, str]]:
                         "host": host,
                     }
                 )
+    if not entries:
+        # Raising keeps a failed load out of the cache so it is retried.
+        raise OSError("The e-petition sites could not be reached.")
 
-    def add_text(entry: dict[str, str]) -> dict[str, str]:
-        try:
-            body = _petition_text(_fetch_petition_page(entry["url"], entry["host"]))
-        except (OSError, ValueError):
-            body = ""
-        return {**entry, "text": body}
+    deadline = time.monotonic() + PETITION_LOAD_SECONDS
+
+    def add_text(entry: dict[str, str]) -> dict[str, str | int]:
+        body = ""
+        if time.monotonic() < deadline:
+            try:
+                body = _petition_text(
+                    _fetch_petition_page(entry["url"], entry["host"])
+                )
+            except (OSError, ValueError):
+                pass
+        counted = re.search(r"([\d,]+)\s+Signatures?\b", body)
+        signatures = int(counted.group(1).replace(",", "")) if counted else 0
+        return {**entry, "text": body, "signatures": signatures}
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         return list(pool.map(add_text, entries))
 
 
-def find_parliament_petitions(
+def load_petitions() -> list[dict[str, str | int]]:
+    """Load every open and closed e-petition from both chambers, with its text."""
+    try:
+        return _load_petitions_cached()
+    except OSError:
+        return []
+
+
+def match_parliament_petitions(
     bill_name: str, limit: int = 6
-) -> list[tuple[str, str]]:
-    """Return (label, url) e-petitions on the Bill or its subject matter."""
+) -> list[dict[str, str | int]]:
+    """Return e-petitions on the Bill or its subject matter, best match first."""
     phrase, keywords = bill_subject_keywords(bill_name)
     petitions = load_petitions()
     if not keywords or not petitions:
@@ -708,9 +730,20 @@ def find_parliament_petitions(
         if enough:
             scored.append((10 * exact + 3 * len(in_title) + len(in_body), petition))
     scored.sort(key=lambda item: item[0], reverse=True)
+    return [petition for _, petition in scored[:limit]]
+
+
+def find_parliament_petitions(
+    bill_name: str, limit: int = 6
+) -> list[tuple[str, str]]:
+    """Return (label, url) e-petitions on the Bill or its subject matter."""
     return [
-        (f"Petition ({p['chamber']}): {p['title']}", p["url"])
-        for _, p in scored[:limit]
+        (
+            f"Petition ({p['chamber']}): {p['title']}"
+            + (f" - {p['signatures']:,} signatures" if p["signatures"] else ""),
+            str(p["url"]),
+        )
+        for p in match_parliament_petitions(bill_name, limit)
     ]
 
 
