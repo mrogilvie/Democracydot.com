@@ -311,6 +311,37 @@ def apply_design_system() -> None:
             [data-testid="stForm"] { padding: 1rem; }
             .dd-footer { flex-direction: column; gap: .35rem; }
         }
+        [data-testid="stStatusWidgetRunningManIcon"],
+        [data-testid="stStatusWidgetNewYearsIcon"] { display: none !important; }
+        [data-testid="stStatusWidgetRunningIcon"] {
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            box-sizing: border-box;
+            height: 1.5rem;
+            position: relative;
+            width: 1.5rem;
+        }
+        [data-testid="stStatusWidgetRunningIcon"]::before,
+        [data-testid="stStatusWidgetRunningIcon"]::after {
+            background: currentColor;
+            border-radius: 1px;
+            content: "";
+            left: calc(50% - 1px);
+            position: absolute;
+            transform-origin: 50% 100%;
+            width: 2px;
+        }
+        [data-testid="stStatusWidgetRunningIcon"]::before {
+            animation: dd-tick 1s steps(2, jump-none) infinite;
+            bottom: 50%;
+            height: 38%;
+        }
+        [data-testid="stStatusWidgetRunningIcon"]::after {
+            animation: dd-tick 12s steps(12, jump-none) infinite;
+            bottom: 50%;
+            height: 28%;
+        }
+        @keyframes dd-tick { to { transform: rotate(360deg); } }
         </style>
         """,
         unsafe_allow_html=True,

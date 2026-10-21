@@ -42,10 +42,25 @@ st.markdown(
     "Explore the Bill, share your perspective, and see how the final text compares "
     "with the original."
 )
+st.markdown(
+    """
+    <style>
+      [data-testid="stColumn"]:has([class*="st-key-dd-home-card-"]),
+      [data-testid="stColumn"]:has([class*="st-key-dd-home-card-"]) > [data-testid="stVerticalBlock"],
+      [class*="st-key-dd-home-card-"] {
+        height: 100%;
+      }
+      @media (min-width: 640px) {
+        [class*="st-key-dd-home-card-"] { min-height: 17rem; }
+      }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 bill_info, interaction, decisions = st.columns(3)
 
 with bill_info:
-    with st.container(border=True):
+    with st.container(border=True, key="dd-home-card-1"):
         st.markdown('<div class="dd-card-number">01</div>', unsafe_allow_html=True)
         st.subheader("Bill Information")
         st.write(
@@ -55,7 +70,7 @@ with bill_info:
         st.page_link("pages/bill_interaction.py", label="Explore the Bill", icon=":material/arrow_forward:")
 
 with interaction:
-    with st.container(border=True):
+    with st.container(border=True, key="dd-home-card-2"):
         st.markdown('<div class="dd-card-number">02</div>', unsafe_allow_html=True)
         st.subheader("Democratic Engagement")
         st.write(
@@ -65,7 +80,7 @@ with interaction:
         st.page_link("pages/decision_phase.py", label="Join the conversation", icon=":material/arrow_forward:")
 
 with decisions:
-    with st.container(border=True):
+    with st.container(border=True, key="dd-home-card-3"):
         st.markdown('<div class="dd-card-number">03</div>', unsafe_allow_html=True)
         st.subheader("Democracy Index")
         st.write(
