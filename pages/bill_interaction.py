@@ -99,11 +99,42 @@ st.caption(
     "Add the Bill-specific Parliament and Hansard links under Essential reading."
 )
 
-with st.form("bill_information_form"):
-    bill_title = st.text_input(
-        "Bill name or number",
-        value=st.session_state.get("bill_title", ""),
+def request_autocomplete():
+    st.session_state["bill_autocomplete_requested"] = True
+
+
+st.text_input(
+    "Bill name or number",
+    value=st.session_state.get("bill_title", ""),
+    key="bill_title_input",
+    on_change=request_autocomplete,
+    help="Press Enter and the fields below are drafted by AI from the Bill text.",
+)
+
+if st.session_state.pop("bill_autocomplete_requested", False):
+    new_title = st.session_state.get("bill_title_input", "").strip()
+    st.session_state["bill_title"] = new_title
+    if new_title:
+        drafted = autocomplete_bill_information(new_title)
+        if drafted:
+            for field, key in (
+                ("summary", "bill_summary"),
+                ("background", "bill_background"),
+                ("policy", "bill_policy"),
+            ):
+                st.session_state[key] = (
+                    st.session_state.get(key, "").strip() or drafted[field]
+                )
+            st.session_state["bill_autocompleted"] = True
+            st.rerun()
+
+if st.session_state.pop("bill_autocompleted", False):
+    st.success(
+        "Empty fields were drafted by AI from the Bill text and saved for this "
+        "session. Review and edit them before relying on them."
     )
+
+with st.form("bill_information_form"):
     summary = st.text_area(
         "Bill summary",
         value=st.session_state.get("bill_summary", ""),
@@ -123,34 +154,11 @@ with st.form("bill_information_form"):
     saved = st.form_submit_button("Save Bill information")
 
 if saved:
-    new_title = bill_title.strip()
+    st.session_state["bill_title"] = st.session_state.get("bill_title_input", "").strip()
     st.session_state["bill_summary"] = summary.strip()
     st.session_state["bill_background"] = background.strip()
     st.session_state["bill_policy"] = policy.strip()
-    title_changed = new_title != st.session_state.get("bill_autocomplete_title")
-    st.session_state["bill_title"] = new_title
-    needs_fill = not (summary.strip() and background.strip() and policy.strip())
-    if new_title and title_changed and needs_fill:
-        st.session_state["bill_autocomplete_title"] = new_title
-        drafted = autocomplete_bill_information(new_title)
-        if drafted:
-            st.session_state["bill_summary"] = summary.strip() or drafted["summary"]
-            st.session_state["bill_background"] = (
-                background.strip() or drafted["background"]
-            )
-            st.session_state["bill_policy"] = policy.strip() or drafted["policy"]
-            st.session_state["bill_autocompleted"] = True
-            st.rerun()
-        else:
-            st.session_state.pop("bill_autocomplete_title", None)
-    else:
-        st.success("Bill information saved for this app session.")
-
-if st.session_state.pop("bill_autocompleted", False):
-    st.success(
-        "Empty fields were drafted by AI from the Bill text and saved for this "
-        "session. Review and edit them before relying on them."
-    )
+    st.success("Bill information saved for this app session.")
 
 st.subheader("Source documents")
 st.caption("Upload selectable-text PDFs, plain text, or Markdown documents.")
