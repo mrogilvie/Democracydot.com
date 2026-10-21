@@ -169,16 +169,42 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
 
     parser = _ParliamentLinkParser()
     parser.feed(page)
+    bills = []
     for href, label in parser.links:
         bill_url = urljoin(search_url, href)
         parsed_bill_url = urlparse(bill_url)
         if (
-            label.casefold().startswith(bill_name.casefold())
-            and parsed_bill_url.scheme == "https"
+            parsed_bill_url.scheme == "https"
             and parsed_bill_url.hostname == PARLIAMENT_HOST
             and parsed_bill_url.path.startswith("/bills/")
         ):
+            bills.append((bill_url, label))
+
+    wanted = " ".join(bill_name.casefold().split())
+    for bill_url, label in bills:
+        if label.casefold().startswith(wanted):
             return bill_url, label
+
+    number = re.fullmatch(
+        r"(?:bill\s+)?(?:no\.?\s*)?(\d+)\s+of\s+(\d{4})", wanted
+    )
+    if number:
+        for bill_url, label in bills:
+            listed = re.search(r"\(\s*(\d+)\s+o[f0]\s+(\d{4})\s*\)", label)
+            if listed and listed.groups() == number.groups():
+                return bill_url, label
+
+    # A name from within the title; prefer the most recent Bill.
+    contained = [
+        (bill_url, label)
+        for bill_url, label in bills
+        if wanted and wanted in label.casefold()
+    ]
+    if contained:
+        return max(
+            contained,
+            key=lambda item: max(map(int, re.findall(r"\b(?:19|20)\d{2}\b", item[1])), default=0),
+        )
     raise ValueError(f"No Parliament Bill record was found for {bill_name!r}.")
 
 
