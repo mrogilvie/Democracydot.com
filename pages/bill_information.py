@@ -644,6 +644,7 @@ with st.container(border=True):
             key="download_marked_up_comparison",
         )
 
+st.subheader("Generate Democracy Index")
 st.caption(
     "The Democracy Index is an AI-assisted estimate of substantive similarity, "
     "not an official parliamentary rating or a measure of democratic legitimacy."
