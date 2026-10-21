@@ -87,7 +87,7 @@ with decisions:
             "Compare the Bill with the final Act, generate a Democracy Index "
             "report, and download a markup."
         )
-        st.page_link("pages/bill_information.py", label="See the report", icon=":material/arrow_forward:")
+        st.page_link("pages/bill_information.py", label="Generate report", icon=":material/arrow_forward:")
 st.markdown(
     """
     <div class="dd-index-note">
