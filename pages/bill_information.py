@@ -547,106 +547,115 @@ if compare_documents:
     st.session_state.pop("marked_up_html", None)
     st.session_state.pop("marked_up_filename", None)
 
-    if not isinstance(original_bill, str) or not original_bill.strip():
-        st.warning("Search Parliament records to retrieve the introduced Bill first.")
-    elif not isinstance(final_bill, str) or not final_bill.strip():
-        st.warning("The Act as passed text is not available for comparison.")
-    else:
-        title = st.session_state.get("parliament_bill_search_name", "Bill")
-        st.session_state["marked_up_html"] = create_marked_up_html(
-            original_bill,
-            final_bill,
-            title,
-        )
-        safe_title = re.sub(r"[^A-Za-z0-9]+", "-", title).strip("-").lower()
-        st.session_state["marked_up_filename"] = (
-            f"{safe_title or 'Bill'}-marked-up.html"
-        )
+    title = st.session_state.get("parliament_bill_search_name", "")
+    has_original = isinstance(original_bill, str) and bool(original_bill.strip())
+    has_act = isinstance(final_bill, str) and bool(final_bill.strip())
+    original_bill = original_bill if has_original else ""
+    final_bill = final_bill if has_act else ""
 
+    if not title:
+        st.warning("Search Parliament records to retrieve the Bill first.")
+    else:
+        if not has_act:
+            st.info(
+                "No Act has been passed for this Bill yet, so the comparison "
+                "between the Bill and the Act is not included. The other "
+                "sections of the Democracy Index are still provided."
+            )
         client = get_openai_client()
         if client:
-            schema = {
-                "type": "object",
-                "properties": {
-                    "alignment_index": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 100,
-                    },
-                    "summary": {"type": "string"},
-                    "changed_areas": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                    },
-                    "evidence_note": {"type": "string"},
-                },
-                "required": [
-                    "alignment_index",
-                    "summary",
-                    "changed_areas",
-                    "evidence_note",
-                ],
-                "additionalProperties": False,
-            }
-            try:
-                with st.spinner("Comparing the documents..."):
-                    response = client.responses.create(
-                        model=MODEL,
-                        instructions=(
-                            "Compare the original Bill and the Act as passed. "
-                            "Estimate substantive alignment from 0 to 100 based "
-                            "on whether the Act preserves the original Bill's "
-                            "purpose and material provisions. Do not let "
-                            "formatting, renumbering, or minor wording changes "
-                            "dominate the score. Identify notable changed areas "
-                            "and briefly explain the basis and limitations of "
-                            "the estimate. Be neutral and do not infer debate "
-                            "positions from Bill text alone."
-                        ),
-                        input=(
-                            "ORIGINAL BILL:\n"
-                            f"{original_bill.strip()}\n\n"
-                            "ACT AS PASSED:\n"
-                            f"{final_bill.strip()}"
-                        ),
-                        text={
-                            "format": {
-                                "type": "json_schema",
-                                "name": "bill_alignment",
-                                "strict": True,
-                                "schema": schema,
-                            }
+            if has_original and has_act:
+                st.session_state["marked_up_html"] = create_marked_up_html(
+                    original_bill,
+                    final_bill,
+                    title,
+                )
+                safe_title = re.sub(r"[^A-Za-z0-9]+", "-", title).strip("-").lower()
+                st.session_state["marked_up_filename"] = (
+                    f"{safe_title or 'Bill'}-marked-up.html"
+                )
+                schema = {
+                    "type": "object",
+                    "properties": {
+                        "alignment_index": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
                         },
-                        max_output_tokens=1000,
-                    )
-                result = json.loads(response.output_text)
-                score = result["alignment_index"]
-                if (
-                    not isinstance(score, int)
-                    or isinstance(score, bool)
-                    or not 0 <= score <= 100
-                    or not isinstance(result["summary"], str)
-                    or not isinstance(result["changed_areas"], list)
-                    or not all(
-                        isinstance(area, str) for area in result["changed_areas"]
-                    )
-                    or not isinstance(result["evidence_note"], str)
-                ):
-                    raise ValueError("The comparison response has an invalid structure.")
-            except OpenAIError as error:
-                report_openai_error(error)
-            except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
-                st.error(f"Could not interpret the comparison result: {error}")
-            else:
-                st.session_state["last_alignment"] = result
+                        "summary": {"type": "string"},
+                        "changed_areas": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                        },
+                        "evidence_note": {"type": "string"},
+                    },
+                    "required": [
+                        "alignment_index",
+                        "summary",
+                        "changed_areas",
+                        "evidence_note",
+                    ],
+                    "additionalProperties": False,
+                }
                 try:
-                    st.session_state["process_report"] = generate_process_report(
-                        client, title, original_bill, final_bill
-                    )
+                    with st.spinner("Comparing the documents..."):
+                        response = client.responses.create(
+                            model=MODEL,
+                            instructions=(
+                                "Compare the original Bill and the Act as passed. "
+                                "Estimate substantive alignment from 0 to 100 based "
+                                "on whether the Act preserves the original Bill's "
+                                "purpose and material provisions. Do not let "
+                                "formatting, renumbering, or minor wording changes "
+                                "dominate the score. Identify notable changed areas "
+                                "and briefly explain the basis and limitations of "
+                                "the estimate. Be neutral and do not infer debate "
+                                "positions from Bill text alone."
+                            ),
+                            input=(
+                                "ORIGINAL BILL:\n"
+                                f"{original_bill.strip()}\n\n"
+                                "ACT AS PASSED:\n"
+                                f"{final_bill.strip()}"
+                            ),
+                            text={
+                                "format": {
+                                    "type": "json_schema",
+                                    "name": "bill_alignment",
+                                    "strict": True,
+                                    "schema": schema,
+                                }
+                            },
+                            max_output_tokens=1000,
+                        )
+                    result = json.loads(response.output_text)
+                    score = result["alignment_index"]
+                    if (
+                        not isinstance(score, int)
+                        or isinstance(score, bool)
+                        or not 0 <= score <= 100
+                        or not isinstance(result["summary"], str)
+                        or not isinstance(result["changed_areas"], list)
+                        or not all(
+                            isinstance(area, str) for area in result["changed_areas"]
+                        )
+                        or not isinstance(result["evidence_note"], str)
+                    ):
+                        raise ValueError("The comparison response has an invalid structure.")
                 except OpenAIError as error:
                     report_openai_error(error)
                 except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
-                    st.error(f"Could not build the process report: {error}")
+                    st.error(f"Could not interpret the comparison result: {error}")
+                else:
+                    st.session_state["last_alignment"] = result
+            try:
+                st.session_state["process_report"] = generate_process_report(
+                    client, title, original_bill, final_bill
+                )
+            except OpenAIError as error:
+                report_openai_error(error)
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+                st.error(f"Could not build the process report: {error}")
 
 timer_placeholder.empty()
 
@@ -684,32 +693,33 @@ if st.session_state.get("marked_up_html"):
         st.info("Confirm that you follow the Facebook page to enable this download.")
 
 previous = st.session_state.get("last_alignment")
-if isinstance(previous, dict):
-    previous_score = previous["alignment_index"]
-    level = alignment_level(previous_score)
-    report = st.session_state.get("process_report")
+report = st.session_state.get("process_report")
+if isinstance(previous, dict) or isinstance(report, dict):
     if isinstance(report, dict):
         st.subheader(report["bill_name"])
         st.markdown("**Public discussion**")
         st.write(report["public_discussion"])
         st.markdown("**Parliamentary debates**")
         st.write(report["parliamentary_debates"])
-        st.markdown("**Bill compared with the Act as passed**")
-        st.write(report["bill_to_act_delta"])
+        if report.get("bill_to_act_delta"):
+            st.markdown("**Bill compared with the Act as passed**")
+            st.write(report["bill_to_act_delta"])
         st.markdown("**Did the democratic process work?**")
         st.write(report["process_analysis"])
         st.caption(
             "AI-generated from web search, Hansard and the Bill and Act texts. "
             "Check the sources; this is not an official assessment."
         )
-    render_meter(previous_score, level)
-    st.subheader("Comparison report")
-    st.write(previous["summary"])
-    if previous["changed_areas"]:
-        st.markdown("**Notable changes**")
-        for area in previous["changed_areas"]:
-            st.markdown(f"- {area}")
-    st.caption(previous["evidence_note"])
+    if isinstance(previous, dict):
+        previous_score = previous["alignment_index"]
+        render_meter(previous_score, alignment_level(previous_score))
+        st.subheader("Comparison report")
+        st.write(previous["summary"])
+        if previous["changed_areas"]:
+            st.markdown("**Notable changes**")
+            for area in previous["changed_areas"]:
+                st.markdown(f"- {area}")
+        st.caption(previous["evidence_note"])
 
     st.markdown("**Download the Democracy Index**")
     follows_for_index = st.checkbox(
@@ -721,7 +731,9 @@ if isinstance(previous, dict):
         index_slug = re.sub(r"[^A-Za-z0-9]+", "-", index_title).strip("-").lower()
         st.download_button(
             "Download Democracy Index",
-            data=create_index_report_html(previous, report, index_title),
+            data=create_index_report_html(
+                previous if isinstance(previous, dict) else None, report, index_title
+            ),
             file_name=f"{index_slug or 'bill'}-democracy-index.html",
             mime="text/html",
             key="download_democracy_index",
