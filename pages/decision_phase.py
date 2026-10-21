@@ -21,6 +21,12 @@ from demodot import (
     sync_session_bill,
 )
 
+DOCUMENT_ORDER = (
+    "Bill as introduced",
+    "Second reading speech",
+    "Fact sheet",
+    "Clause notes",
+)
 
 st.title("Democratic Engagement")
 st.write("Ask questions with Billbow Q&A and send constituent feedback.")
@@ -126,7 +132,17 @@ if (
         st.link_button("Open Bill as Tabled PDF", bill_pdf_url)
     official_documents = st.session_state.get("official_parliament_documents", [])
     if isinstance(official_documents, list):
-        for index, document in enumerate(official_documents):
+        ordered_documents = sorted(
+            enumerate(official_documents),
+            key=lambda item: (
+                DOCUMENT_ORDER.index(item[1].get("category"))
+                if isinstance(item[1], dict)
+                and item[1].get("category") in DOCUMENT_ORDER
+                else len(DOCUMENT_ORDER),
+                item[0],
+            ),
+        )
+        for index, document in ordered_documents:
             if (
                 not isinstance(document, dict)
                 or document.get("category") == "Bill as introduced"
@@ -146,6 +162,19 @@ if (
                 )
                 if isinstance(document_url, str):
                     st.link_button(f"Open {category} PDF", document_url)
+
+    final_act_pdf = st.session_state.get("parliament_act_pdf")
+    if isinstance(final_act_pdf, bytes):
+        with st.container(border=True):
+            st.subheader(f"{bill_record_title} — Final Act")
+            st.pdf(
+                final_act_pdf,
+                height=640,
+                key="interaction_final_act_pdf_viewer",
+            )
+            final_act_url = st.session_state.get("parliament_act_pdf_url")
+            if isinstance(final_act_url, str):
+                st.link_button("Open Final Act PDF", final_act_url)
 
 links = st.session_state.get("essential_links", [])
 if isinstance(links, list):
@@ -281,7 +310,8 @@ if (
 st.subheader("Constituent feedback")
 st.caption(
     "Comments are anonymous and saved so the app owner can review them. They are "
-    "not sent to Parliament. Avoid including personal or sensitive information."
+    "not sent to Parliament. You can choose to include your generated proposed "
+    "amendment. Avoid including personal or sensitive information."
 )
 comment_bill = (
     st.session_state.get("bill_title", "").strip()
@@ -289,9 +319,31 @@ comment_bill = (
 )
 if comment_bill:
     st.caption(f"Your comment will be saved against: **{comment_bill}**")
+
+generated_amendment = st.session_state.get("proposed_amendment")
+current_amendment = ""
+if (
+    isinstance(generated_amendment, tuple)
+    and len(generated_amendment) == 2
+    and generated_amendment[0] == st.session_state.get("amendment_request", "").strip()
+    and isinstance(generated_amendment[1], str)
+):
+    current_amendment = generated_amendment[1].strip()
+if current_amendment:
+    st.checkbox(
+        "Include my generated proposed amendment in this feedback",
+        key="include_amendment_feedback",
+    )
+
+
 def request_comment() -> None:
     st.session_state["pending_comment"] = st.session_state.get(
         "constituent_comment_input", ""
+    )
+    st.session_state["pending_amendment"] = (
+        current_amendment
+        if st.session_state.get("include_amendment_feedback", False)
+        else ""
     )
     st.session_state["constituent_comment_input"] = ""
 
@@ -303,6 +355,7 @@ st.text_input(
     help="Press Enter to send your comment.",
 )
 comment = st.session_state.pop("pending_comment", "")
+pending_amendment = st.session_state.pop("pending_amendment", "")
 
 if comment:
     if not comment_bill:
@@ -313,8 +366,14 @@ if comment:
     elif not comment.strip():
         st.warning("Enter a comment before sending.")
     else:
+        submitted_comment = comment.strip()
+        if pending_amendment:
+            submitted_comment += (
+                "\n\nProposed amendment:\n"
+                f"{pending_amendment}"
+            )
         try:
-            save_comment(comment, comment_bill)
+            save_comment(submitted_comment, comment_bill)
         except (OSError, sqlite3.Error) as error:
             st.error(f"Could not save your comment: {error}")
         else:
