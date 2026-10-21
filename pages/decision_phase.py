@@ -7,6 +7,7 @@ from openai import OpenAIError
 
 from comment_store import save_comment
 from demodot import (
+    MAX_SOURCE_CHARS,
     MODEL,
     PARLIAMENT_URL,
     extract_uploaded_text,
@@ -206,6 +207,76 @@ if st.session_state.pop("question_requested", False):
 billbow_answer = st.session_state.get("billbow_answer")
 if billbow_answer and billbow_answer[0] == question.strip():
     st.markdown(billbow_answer[1])
+
+st.subheader("Proposed amendment")
+st.caption(
+    "Describe the change you would like to propose. Your request and relevant "
+    "Bill or Act text will be sent to OpenAI to draft suggested amendment wording. "
+    "Review the draft against official sources; it is not legal advice."
+)
+amendment_request = st.text_area(
+    "What change would you like to propose to the Bill or Act?",
+    key="amendment_request",
+)
+if st.button("Generate Amendment", key="generate_amendment"):
+    st.session_state.pop("proposed_amendment", None)
+    amendment_source = get_source_material()
+    act_text = st.session_state.get("final_bill_text", "")
+    if (
+        isinstance(act_text, str)
+        and act_text.strip()
+        and not act_text.startswith("%PDF-")
+    ):
+        act_section = f"\n\n## Act as passed\n{act_text.strip()}"
+        amendment_source = (
+            amendment_source[: max(0, MAX_SOURCE_CHARS - len(act_section))]
+            + act_section[:MAX_SOURCE_CHARS]
+        )
+    if not amendment_request.strip():
+        st.warning("Describe the change you would like to propose.")
+    elif not amendment_source.strip():
+        st.warning(
+            "Search for a Bill above or add Bill information and source documents "
+            "on the Bill Information page before generating an amendment."
+        )
+    else:
+        client = get_openai_client()
+        if client:
+            try:
+                with st.spinner("Drafting a proposed amendment..."):
+                    response = client.responses.create(
+                        model=MODEL,
+                        instructions=(
+                            "Draft a proposed legislative amendment in response to "
+                            "the user's requested change, using only the supplied "
+                            "legislative material. Provide a concise title, identify "
+                            "the provision to amend where the material supports it, "
+                            "and present the amendment wording clearly. Do not "
+                            "invent section numbers, existing wording, legal effects, "
+                            "or facts. If the material is insufficient to draft "
+                            "precise wording, explain what is missing and provide "
+                            "only a clearly labelled indicative draft. State that "
+                            "the draft is a suggestion for review, not legal advice."
+                        ),
+                        input=(
+                            f"Legislative material:\n{amendment_source}\n\n"
+                            f"Requested change:\n{amendment_request.strip()}"
+                        ),
+                        max_output_tokens=1800,
+                    )
+                st.session_state["proposed_amendment"] = (
+                    amendment_request.strip(),
+                    response.output_text,
+                )
+            except OpenAIError as error:
+                report_openai_error(error)
+
+proposed_amendment = st.session_state.get("proposed_amendment")
+if (
+    proposed_amendment
+    and proposed_amendment[0] == amendment_request.strip()
+):
+    st.markdown(proposed_amendment[1])
 
 st.subheader("Constituent feedback")
 st.caption(

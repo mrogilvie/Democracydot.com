@@ -38,7 +38,7 @@ We do not sell your information and we do not use it for advertising.
 
 ## 3. AI processing and OpenAI
 
-When you ask for an AI feature (a summary, a Billbow answer, a document comparison, or the public discussion summary), the relevant text is sent to OpenAI to produce the result. This can include Bill text, text you typed or uploaded, and your question. It is sent only when you request an AI feature.
+When you ask for an AI feature (a summary, a Billbow answer, a proposed amendment, a document comparison, or the public discussion summary), the relevant text is sent to OpenAI to produce the result. This can include Bill text, text you typed or uploaded, and your question. It is sent only when you request an AI feature.
 
 OpenAI processes this information under its own terms and privacy policy, available at openai.com/policies. Do not enter or upload personal, confidential, or sensitive information, or material you are not authorised to share.
 
