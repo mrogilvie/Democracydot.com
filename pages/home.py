@@ -96,7 +96,7 @@ with decisions:
         st.subheader("Democracy Index")
         st.write(
             "Compare the Bill with the final Act, generate a Democracy Index "
-            "report, and download a markup."
+            "report, and download a helpful comparison document."
         )
         st.page_link("pages/bill_information.py", label="Generate report", icon=":material/arrow_forward:")
 st.markdown(
