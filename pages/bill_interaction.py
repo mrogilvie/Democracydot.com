@@ -1,3 +1,5 @@
+from json import JSONDecodeError, loads
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 
 import streamlit as st
@@ -5,12 +7,81 @@ from openai import OpenAIError
 
 from demodot import (
     MODEL,
+    PARLIAMENT_HOST,
     PARLIAMENT_URL,
     extract_uploaded_text,
+    fetch_official_pdf,
+    find_parliament_bill_page,
+    find_parliament_bill_pdf_url,
     get_openai_client,
     get_source_material,
     report_openai_error,
 )
+
+
+MAX_AUTOCOMPLETE_CHARS = 60000
+AUTOCOMPLETE_FIELDS = ("summary", "background", "policy")
+
+
+def autocomplete_bill_information(bill_name: str) -> dict[str, str] | None:
+    """Draft summary, background and policy context from the official Bill text."""
+    try:
+        with st.spinner("Retrieving the Bill from Parliament records..."):
+            bill_page, record_title = find_parliament_bill_page(bill_name)
+            pdf_url = find_parliament_bill_pdf_url(bill_page)
+            pdf = fetch_official_pdf(pdf_url, PARLIAMENT_HOST)
+            bill_text = extract_uploaded_text(
+                pdf_url.rsplit("/", 1)[-1].removesuffix(".pdf") + ".pdf", pdf
+            )
+    except (HTTPError, URLError, TimeoutError, UnicodeDecodeError, ValueError) as error:
+        st.warning(f"Could not retrieve the Bill from Parliament records: {error}")
+        return None
+
+    client = get_openai_client()
+    if not client:
+        return None
+
+    schema = {
+        "type": "object",
+        "properties": {name: {"type": "string"} for name in AUTOCOMPLETE_FIELDS},
+        "required": list(AUTOCOMPLETE_FIELDS),
+        "additionalProperties": False,
+    }
+    try:
+        with st.spinner("Drafting the Bill information with AI..."):
+            response = client.responses.create(
+                model=MODEL,
+                instructions=(
+                    "Using only the supplied Bill text, write nonpartisan "
+                    "plain-language information for the public. 'summary': a "
+                    "concise overview of what the Bill does. 'background': why "
+                    "the Bill was introduced and its context, only as far as "
+                    "the text supports. 'policy': the policy purpose, the main "
+                    "changes it makes and who is affected. Do not infer debate "
+                    "positions, invent facts, or give legal advice. If the text "
+                    "does not support something, say so briefly."
+                ),
+                input=f"BILL: {record_title}\n\n{bill_text[:MAX_AUTOCOMPLETE_CHARS]}",
+                text={
+                    "format": {
+                        "type": "json_schema",
+                        "name": "bill_information",
+                        "strict": True,
+                        "schema": schema,
+                    }
+                },
+                max_output_tokens=1500,
+            )
+        result = loads(response.output_text)
+        if not all(isinstance(result.get(name), str) for name in AUTOCOMPLETE_FIELDS):
+            raise ValueError("The AI response has an invalid structure.")
+    except OpenAIError as error:
+        report_openai_error(error)
+        return None
+    except (JSONDecodeError, ValueError, TypeError) as error:
+        st.error(f"Could not interpret the AI result: {error}")
+        return None
+    return {name: result[name].strip() for name in AUTOCOMPLETE_FIELDS}
 
 
 st.title("Bill Information")
@@ -50,6 +121,31 @@ with st.form("bill_information_form"):
         height=160,
     )
     saved = st.form_submit_button("Save Bill information")
+    autocomplete = st.form_submit_button(
+        "Auto-complete with AI",
+        help="Fetches the Bill from Parliament records and drafts any empty fields.",
+    )
+
+if autocomplete:
+    if not bill_title.strip():
+        st.warning("Enter a Bill name or number first.")
+    else:
+        drafted = autocomplete_bill_information(bill_title.strip())
+        if drafted:
+            st.session_state["bill_title"] = bill_title.strip()
+            st.session_state["bill_summary"] = summary.strip() or drafted["summary"]
+            st.session_state["bill_background"] = (
+                background.strip() or drafted["background"]
+            )
+            st.session_state["bill_policy"] = policy.strip() or drafted["policy"]
+            st.session_state["bill_autocompleted"] = True
+            st.rerun()
+
+if st.session_state.pop("bill_autocompleted", False):
+    st.success(
+        "Empty fields were drafted by AI from the Bill text and saved for this "
+        "session. Review and edit them before relying on them."
+    )
 
 if saved:
     st.session_state["bill_title"] = bill_title.strip()
