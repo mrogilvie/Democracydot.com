@@ -352,7 +352,10 @@ def render_meter(score: int, level: str) -> None:
 
 st.title("Democracy Index")
 st.write(
-    "View the introduced Bill and Act as passed, then compare both versions."
+    "Democracydot will prepare a Democracy Index that allows you to compare "
+    "changes between the original Bill and any final Act. The Democracy Index "
+    "incorporates democratic engagement through media, social media and "
+    "parliamentary debates."
 )
 st.caption(
     "Both Bill texts, Hansard text and the Bill name are sent to OpenAI only when you request a comparison. "
