@@ -275,7 +275,7 @@ def get_source_material() -> str:
 @st.cache_data(ttl=3600, show_spinner=False)
 def find_hansard_debate_links(bill_name: str) -> list[tuple[str, str]]:
     """Return official Hansard search links for each chamber that debated the Bill."""
-    phrase = re.sub(r"\s*\(.*?\)\s*$", "", bill_name).strip()
+    phrase = re.sub(r"\s*\(\s*\d+\s+of\s+\d{4}\s*\)\s*$", "", bill_name).strip()
     if not phrase:
         return []
     links = []
@@ -309,7 +309,7 @@ HANSARD_MAX_CHAMBER_CHARS = 60000
 
 
 def _hansard_search_phrase(bill_name: str) -> str:
-    return re.sub(r"\s*\(.*?\)\s*$", "", bill_name).strip()
+    return re.sub(r"\s*\(\s*\d+\s+of\s+\d{4}\s*\)\s*$", "", bill_name).strip()
 
 
 def _extract_bill_sections(docx_bytes: bytes, phrase: str) -> list[str]:

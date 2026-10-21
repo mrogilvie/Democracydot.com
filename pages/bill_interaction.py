@@ -16,7 +16,6 @@ from demodot import (
     find_parliament_bill_page,
     find_parliament_bill_pdf_url,
     get_openai_client,
-    get_source_material,
     report_openai_error,
 )
 
@@ -202,105 +201,79 @@ if bill_record:
 essential_links.extend({"label": l, "url": u} for l, u in hansard_links)
 st.session_state["essential_links"] = essential_links
 
-with st.expander("Draft a plain-language summary with AI"):
-    if st.button("Draft summary from saved material", key="draft_bill_summary"):
-        source = get_source_material()
-        if not source:
-            st.warning("Add summary, background, or policy text first.")
-        else:
+st.subheader("Create Hansard AI summary")
+st.caption(
+    "Summarises the House of Assembly debate, then the Legislative Council "
+    "debate, then draws a conclusion, using only the Parliament of Tasmania "
+    "Hansard text for this Bill."
+)
+if st.button("Create Hansard AI summary", key="summarise_hansard"):
+    if not entered_bill:
+        st.warning("Enter a Bill name or number above first.")
+    else:
+        try:
+            with st.spinner("Reading Hansard..."):
+                debates = {
+                    chamber: fetch_hansard_bill_debate(hansard_name, chamber)
+                    for chamber in HANSARD_CHAMBERS
+                }
+        except (HTTPError, URLError, TimeoutError, ValueError, OSError) as error:
+            st.warning(f"Could not retrieve Hansard: {error}")
+            debates = None
+        if debates is not None and not any(debates.values()):
+            st.info("No Hansard text was found for this Bill yet.")
+        elif debates is not None:
+            parts = []
+            for chamber, sittings in debates.items():
+                if sittings:
+                    body = "\n\n".join(
+                        f"[{sitting}]\n{text}" for sitting, text in sittings
+                    )
+                else:
+                    body = "(No Hansard text found for this chamber.)"
+                parts.append(f"=== {chamber} ===\n{body}")
             client = get_openai_client()
             if client:
                 try:
-                    with st.spinner("Drafting a summary..."):
+                    with st.spinner("Summarising the debates..."):
                         response = client.responses.create(
                             model=MODEL,
                             instructions=(
-                                "Write a concise, nonpartisan plain-language summary "
-                                "of the supplied legislative material. State only "
-                                "what the material supports, identify uncertainty, "
-                                "and do not provide legal advice."
+                                "You summarise Tasmanian Parliament Hansard for "
+                                "the public in neutral plain English, using ONLY "
+                                "the supplied Hansard text. Write three markdown "
+                                "sections: '### House of Assembly debate', "
+                                "'### Legislative Council debate' and "
+                                "'### Conclusion'. In each debate section cover "
+                                "the main arguments for and against, key "
+                                "amendments and the outcome of any vote, naming "
+                                "speakers only when the text does. If a "
+                                "chamber's text shows only the first reading, or "
+                                "none, say the Bill has not yet been debated "
+                                "there and do not speculate. The Conclusion "
+                                "should draw together the debates and where the "
+                                "Bill stands, only as far as the text supports. "
+                                "Text marked 'trimmed' is excerpted. Do not "
+                                "provide legal advice or invent facts."
                             ),
-                            input=source,
-                            max_output_tokens=700,
+                            input=f"Bill: {hansard_name}\n\n" + "\n\n".join(parts),
+                            max_output_tokens=1500,
                         )
-                    st.markdown(response.output_text)
+                    st.session_state["hansard_summary"] = (
+                        hansard_name,
+                        response.output_text,
+                    )
                 except OpenAIError as error:
                     report_openai_error(error)
 
-    st.divider()
-    st.markdown("**Hansard debate summary**")
+hansard_summary = st.session_state.get("hansard_summary")
+if hansard_summary and hansard_summary[0] == hansard_name:
+    st.markdown(hansard_summary[1])
     st.caption(
-        "Summarises the House of Assembly debate, then the Legislative Council "
-        "debate, then draws a conclusion, using only the Parliament of Tasmania "
-        "Hansard text for this Bill."
+        "AI-generated from Parliament of Tasmania Hansard and may be incomplete "
+        "or wrong; long debates are trimmed. Read the Hansard links above for "
+        "the full record."
     )
-    if st.button("Summarise the Hansard debates", key="summarise_hansard"):
-        if not entered_bill:
-            st.warning("Enter a Bill name or number above first.")
-        else:
-            try:
-                with st.spinner("Reading Hansard..."):
-                    debates = {
-                        chamber: fetch_hansard_bill_debate(hansard_name, chamber)
-                        for chamber in HANSARD_CHAMBERS
-                    }
-            except (HTTPError, URLError, TimeoutError, ValueError, OSError) as error:
-                st.warning(f"Could not retrieve Hansard: {error}")
-                debates = None
-            if debates is not None and not any(debates.values()):
-                st.info("No Hansard text was found for this Bill yet.")
-            elif debates is not None:
-                parts = []
-                for chamber, sittings in debates.items():
-                    if sittings:
-                        body = "\n\n".join(
-                            f"[{sitting}]\n{text}" for sitting, text in sittings
-                        )
-                    else:
-                        body = "(No Hansard text found for this chamber.)"
-                    parts.append(f"=== {chamber} ===\n{body}")
-                client = get_openai_client()
-                if client:
-                    try:
-                        with st.spinner("Summarising the debates..."):
-                            response = client.responses.create(
-                                model=MODEL,
-                                instructions=(
-                                    "You summarise Tasmanian Parliament Hansard for "
-                                    "the public in neutral plain English, using ONLY "
-                                    "the supplied Hansard text. Write three markdown "
-                                    "sections: '### House of Assembly debate', "
-                                    "'### Legislative Council debate' and "
-                                    "'### Conclusion'. In each debate section cover "
-                                    "the main arguments for and against, key "
-                                    "amendments and the outcome of any vote, naming "
-                                    "speakers only when the text does. If a "
-                                    "chamber's text shows only the first reading, or "
-                                    "none, say the Bill has not yet been debated "
-                                    "there and do not speculate. The Conclusion "
-                                    "should draw together the debates and where the "
-                                    "Bill stands, only as far as the text supports. "
-                                    "Text marked 'trimmed' is excerpted. Do not "
-                                    "provide legal advice or invent facts."
-                                ),
-                                input=f"Bill: {hansard_name}\n\n" + "\n\n".join(parts),
-                                max_output_tokens=1500,
-                            )
-                        st.session_state["hansard_summary"] = (
-                            hansard_name,
-                            response.output_text,
-                        )
-                    except OpenAIError as error:
-                        report_openai_error(error)
-
-    hansard_summary = st.session_state.get("hansard_summary")
-    if hansard_summary and hansard_summary[0] == hansard_name:
-        st.markdown(hansard_summary[1])
-        st.caption(
-            "AI-generated from Parliament of Tasmania Hansard and may be incomplete "
-            "or wrong; long debates are trimmed. Read the Hansard links above for "
-            "the full record."
-        )
 
 st.subheader("The public discussion")
 st.caption(
