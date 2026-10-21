@@ -410,7 +410,13 @@ def sync_session_bill(widget_key: str, marker_key: str) -> bool:
     page can run its search automatically.
     """
     bill = st.session_state.get("bill_title", "").strip()
-    if not bill or st.session_state.get(marker_key) == bill:
+    if not bill:
+        return False
+    # Streamlit discards a page's widget value when the user leaves the page, so
+    # refill the box on return even if the search has already run.
+    if widget_key not in st.session_state:
+        st.session_state[widget_key] = bill
+    if st.session_state.get(marker_key) == bill:
         return False
     st.session_state[widget_key] = bill
     st.session_state[marker_key] = bill
