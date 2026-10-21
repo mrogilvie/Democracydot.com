@@ -9,7 +9,6 @@ from openai import OpenAIError
 from comment_store import save_comment
 from demodot import (
     MAX_SOURCE_CHARS,
-    LEGISLATION_HOST,
     MODEL,
     PARLIAMENT_URL,
     extract_uploaded_text,
@@ -25,6 +24,8 @@ from demodot import (
     publish_session_bill,
     sync_session_bill,
 )
+
+LEGISLATION_HOST = urlparse("https://www.legislation.tas.gov.au").hostname
 
 
 class ChamberStatus(TypedDict):
