@@ -6,6 +6,7 @@ from io import BytesIO
 from pathlib import Path
 from html import unescape as html_unescape
 from html.parser import HTMLParser
+from typing import TypedDict
 from urllib.parse import unquote, urlencode, urljoin, urlparse
 from urllib.request import Request, urlopen
 
@@ -106,6 +107,19 @@ class _BillStatusTableParser(HTMLParser):
             self.in_table = False
 
 
+class ChamberStatus(TypedDict):
+    passed_date: str | None
+    latest_stage: str | None
+    latest_date: str | None
+    negatived_date: str | None
+
+
+class BillStatus(TypedDict):
+    house_of_assembly: ChamberStatus
+    legislative_council: ChamberStatus
+    royal_assent_date: str | None
+
+
 def get_openai_client() -> OpenAI | None:
     load_dotenv(Path(__file__).resolve().with_name(".env"))
     try:
@@ -166,7 +180,7 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
     raise ValueError(f"No Parliament Bill record was found for {bill_name!r}.")
 
 
-def get_parliament_bill_status(bill_page_url: str) -> dict[str, dict[str, str | bool | None] | str | None]:
+def get_parliament_bill_status(bill_page_url: str) -> BillStatus:
     parsed_bill_url = urlparse(bill_page_url)
     if (
         parsed_bill_url.scheme != "https"
@@ -189,7 +203,7 @@ def get_parliament_bill_status(bill_page_url: str) -> dict[str, dict[str, str | 
     if not parser.status_rows:
         raise ValueError("The Parliament Bill record does not include a status table.")
 
-    houses: dict[str, dict[str, str | bool | None]] = {}
+    houses: dict[str, ChamberStatus] = {}
     for key, stage_column, date_column in (
         ("house_of_assembly", 0, 1),
         ("legislative_council", 2, 3),
