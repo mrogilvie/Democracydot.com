@@ -90,8 +90,8 @@ st.write(
     "policy context, and essential reading."
 )
 st.caption(
-    "Text is sent to OpenAI only when you request an AI summary. Add only material "
-    "you are authorized to share."
+    "Text is sent to OpenAI only when you request an AI feature, such as a summary "
+    "or when you enter a Bill name. Add only material you are authorized to share."
 )
 
 st.link_button("Tasmanian Parliament website", PARLIAMENT_URL)
@@ -121,18 +121,19 @@ with st.form("bill_information_form"):
         height=160,
     )
     saved = st.form_submit_button("Save Bill information")
-    autocomplete = st.form_submit_button(
-        "Auto-complete with AI",
-        help="Fetches the Bill from Parliament records and drafts any empty fields.",
-    )
 
-if autocomplete:
-    if not bill_title.strip():
-        st.warning("Enter a Bill name or number first.")
-    else:
-        drafted = autocomplete_bill_information(bill_title.strip())
+if saved:
+    new_title = bill_title.strip()
+    st.session_state["bill_summary"] = summary.strip()
+    st.session_state["bill_background"] = background.strip()
+    st.session_state["bill_policy"] = policy.strip()
+    title_changed = new_title != st.session_state.get("bill_autocomplete_title")
+    st.session_state["bill_title"] = new_title
+    needs_fill = not (summary.strip() and background.strip() and policy.strip())
+    if new_title and title_changed and needs_fill:
+        st.session_state["bill_autocomplete_title"] = new_title
+        drafted = autocomplete_bill_information(new_title)
         if drafted:
-            st.session_state["bill_title"] = bill_title.strip()
             st.session_state["bill_summary"] = summary.strip() or drafted["summary"]
             st.session_state["bill_background"] = (
                 background.strip() or drafted["background"]
@@ -140,19 +141,16 @@ if autocomplete:
             st.session_state["bill_policy"] = policy.strip() or drafted["policy"]
             st.session_state["bill_autocompleted"] = True
             st.rerun()
+        else:
+            st.session_state.pop("bill_autocomplete_title", None)
+    else:
+        st.success("Bill information saved for this app session.")
 
 if st.session_state.pop("bill_autocompleted", False):
     st.success(
         "Empty fields were drafted by AI from the Bill text and saved for this "
         "session. Review and edit them before relying on them."
     )
-
-if saved:
-    st.session_state["bill_title"] = bill_title.strip()
-    st.session_state["bill_summary"] = summary.strip()
-    st.session_state["bill_background"] = background.strip()
-    st.session_state["bill_policy"] = policy.strip()
-    st.success("Bill information saved for this app session.")
 
 st.subheader("Source documents")
 st.caption("Upload selectable-text PDFs, plain text, or Markdown documents.")
