@@ -96,6 +96,28 @@ def create_marked_up_html(original_text: str, act_text: str, title: str) -> str:
 
 
 REPORT_TEXT_LIMIT = 30_000
+ESTIMATED_SECONDS = 120
+
+
+def countdown_html(seconds: int) -> str:
+    return f"""<div style="font:16px system-ui,sans-serif;color:#172033">
+  <strong>Estimated time remaining:</strong> <span id="t"></span>
+  <div style="background:#e2e8f0;border-radius:6px;height:8px;margin-top:8px">
+    <div id="bar" style="background:#176b5b;border-radius:6px;height:8px;width:100%"></div></div>
+</div>
+<script>
+  const total = {seconds};
+  const end = Date.now() + total * 1000;
+  const t = document.getElementById("t"), bar = document.getElementById("bar");
+  function tick() {{
+    const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
+    t.textContent = left > 0
+      ? Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0")
+      : "finishing up, almost done...";
+    bar.style.width = (left / total * 100) + "%";
+  }}
+  tick(); setInterval(tick, 250);
+</script>"""
 
 
 def generate_process_report(client, bill_name: str, original: str, final: str) -> dict:
@@ -433,11 +455,15 @@ st.caption(
 )
 
 compare_documents = st.button(
-    "Compare document - Democracy Index",
+    "Create Democracy Index",
     key="compare_documents_and_show_markup",
 )
+st.caption("Please do not close the browser while the request is processing.")
+timer_placeholder = st.empty()
 
 if compare_documents:
+    with timer_placeholder:
+        st.iframe(countdown_html(ESTIMATED_SECONDS), height=90)
     original_bill = st.session_state.get("original_bill_text", "")
     final_bill = st.session_state.get("final_bill_text", "")
     st.session_state.pop("last_alignment", None)
@@ -545,6 +571,8 @@ if compare_documents:
                     report_openai_error(error)
                 except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
                     st.error(f"Could not build the process report: {error}")
+
+timer_placeholder.empty()
 
 if st.session_state.get("marked_up_html"):
     with st.container(border=True):
