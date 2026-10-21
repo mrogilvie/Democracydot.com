@@ -8,11 +8,14 @@ from urllib.parse import urlparse
 import streamlit as st
 from openai import OpenAIError
 
+from comment_store import get_comments
 from demodot import (
+    HANSARD_CHAMBERS,
     LEGISLATION_HOST,
     MODEL,
     PARLIAMENT_URL,
     extract_uploaded_text,
+    fetch_hansard_bill_debate,
     fetch_official_pdf,
     find_act_pdf_url,
     find_parliament_bill_page,
@@ -32,7 +35,7 @@ LEVELS = [
     ("High", 34, 50),
     ("Very High", 51, 67),
     ("Exceptional", 68, 84),
-    ("Perfect Alignment", 85, 100),
+    ("Aligned", 85, 100),
 ]
 PARLIAMENT_HOST = urlparse(PARLIAMENT_URL).hostname
 
@@ -92,6 +95,102 @@ def create_marked_up_html(original_text: str, act_text: str, title: str) -> str:
 """
 
 
+REPORT_TEXT_LIMIT = 30_000
+
+
+def generate_process_report(client, bill_name: str, original: str, final: str) -> dict:
+    with st.spinner("Searching public discussion..."):
+        discussion = client.responses.create(
+            model=MODEL,
+            tools=[{"type": "web_search_preview"}],
+            instructions=(
+                "Search news media and publicly visible social media for "
+                "discussion of the named Tasmanian Parliament Bill. Write ONE "
+                "nonpartisan paragraph summarising public sentiment: tone, main "
+                "arguments for and against, and key stakeholders. State clearly "
+                "if little or no discussion is found. Do not invent sources or "
+                "quotes, and do not present sentiment as a poll."
+            ),
+            input=f"Bill: {bill_name}",
+            max_output_tokens=600,
+        ).output_text.strip()
+
+    with st.spinner("Reading Hansard..."):
+        debates = {}
+        for chamber in HANSARD_CHAMBERS:
+            try:
+                sittings = fetch_hansard_bill_debate(bill_name, chamber)
+            except (HTTPError, URLError, TimeoutError, ValueError):
+                sittings = []
+            debates[chamber] = sittings
+    debate_text = "\n\n".join(
+        f"=== {chamber} ===\n"
+        + (
+            "\n\n".join(f"[{day}]\n{text}" for day, text in sittings)[
+                :REPORT_TEXT_LIMIT
+            ]
+            or "(No Hansard text found.)"
+        )
+        for chamber, sittings in debates.items()
+    )
+    sitting_count = sum(len(sittings) for sittings in debates.values())
+    comment_count = sum(
+        1
+        for item in get_comments()
+        if bill_name.casefold() in (item.get("bill_title") or "").casefold()
+    )
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "parliamentary_debates": {"type": "string"},
+            "bill_to_act_delta": {"type": "string"},
+            "process_analysis": {"type": "string"},
+        },
+        "required": ["parliamentary_debates", "bill_to_act_delta", "process_analysis"],
+        "additionalProperties": False,
+    }
+    with st.spinner("Analysing the legislative process..."):
+        response = client.responses.create(
+            model=MODEL,
+            instructions=(
+                "You analyse a Tasmanian Parliament Bill. Return three fields, "
+                "each ONE neutral plain-English paragraph. "
+                "'parliamentary_debates': summarise the Hansard debate in both "
+                "houses using only the supplied Hansard text; say so if none was "
+                "found. 'bill_to_act_delta': summarise the key differences "
+                "between the original Bill and the Act as passed, or say there "
+                "are no material changes. 'process_analysis': assess whether the "
+                "democratic process worked, how much engagement happened "
+                "(public discussion, Hansard sittings, constituent comments "
+                "received) and any key changes made during the legislative "
+                "process. Do not overstate; note evidence limits."
+            ),
+            input=(
+                f"Bill: {bill_name}\n"
+                f"Hansard sittings found: {sitting_count}\n"
+                f"Constituent comments received on Democracydot: {comment_count}\n\n"
+                f"PUBLIC DISCUSSION SUMMARY:\n{discussion}\n\n"
+                f"HANSARD:\n{debate_text}\n\n"
+                f"ORIGINAL BILL:\n{original.strip()[:REPORT_TEXT_LIMIT]}\n\n"
+                f"ACT AS PASSED:\n{final.strip()[:REPORT_TEXT_LIMIT]}"
+            ),
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name": "process_report",
+                    "strict": True,
+                    "schema": schema,
+                }
+            },
+            max_output_tokens=1500,
+        )
+    report = json.loads(response.output_text)
+    report["public_discussion"] = discussion
+    report["bill_name"] = bill_name
+    return report
+
+
 def alignment_level(score: int) -> str:
     for label, minimum, maximum in LEVELS:
         if minimum <= score <= maximum:
@@ -115,14 +214,14 @@ def render_meter(score: int, level: str) -> None:
             &nbsp;·&nbsp; Democracy Index:
             <strong>{score}/100</strong> &nbsp;·&nbsp; {level}</div>
           <div class="meter-track" role="img"
-               aria-label="Democracy Index {score} out of 100, {level} alignment">
+               aria-label="Democracy Index {score} out of 100, {level}">
             <div class="meter-gradient" style="background:linear-gradient(to right,{gradient})"></div>
             <div class="meter-marker" style="left:{score}%"></div>
           </div>
           <div class="meter-labels">
             <span>Low</span><span>Moderate</span><span>High</span>
             <span>Very High</span><span>Exceptional</span>
-            <span>Perfect Alignment</span>
+            <span>Aligned</span>
           </div>
         </div>
         <style>
@@ -194,7 +293,7 @@ st.write(
     "View the introduced Bill and Act as passed, then compare both versions."
 )
 st.caption(
-    "Both Bill texts are sent to OpenAI only when you request a comparison. "
+    "Both Bill texts, Hansard text and the Bill name are sent to OpenAI only when you request a comparison. "
     "Add only material you are authorized to share."
 )
 st.subheader("Find the Bill in Parliament records")
@@ -342,6 +441,7 @@ if compare_documents:
     original_bill = st.session_state.get("original_bill_text", "")
     final_bill = st.session_state.get("final_bill_text", "")
     st.session_state.pop("last_alignment", None)
+    st.session_state.pop("process_report", None)
     st.session_state.pop("marked_up_html", None)
     st.session_state.pop("marked_up_filename", None)
 
@@ -437,6 +537,14 @@ if compare_documents:
                 st.error(f"Could not interpret the comparison result: {error}")
             else:
                 st.session_state["last_alignment"] = result
+                try:
+                    st.session_state["process_report"] = generate_process_report(
+                        client, title, original_bill, final_bill
+                    )
+                except OpenAIError as error:
+                    report_openai_error(error)
+                except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+                    st.error(f"Could not build the process report: {error}")
 
 if st.session_state.get("marked_up_html"):
     with st.container(border=True):
@@ -475,6 +583,21 @@ previous = st.session_state.get("last_alignment")
 if isinstance(previous, dict):
     previous_score = previous["alignment_index"]
     level = alignment_level(previous_score)
+    report = st.session_state.get("process_report")
+    if isinstance(report, dict):
+        st.subheader(report["bill_name"])
+        st.markdown("**Public discussion**")
+        st.write(report["public_discussion"])
+        st.markdown("**Parliamentary debates**")
+        st.write(report["parliamentary_debates"])
+        st.markdown("**Bill compared with the Act as passed**")
+        st.write(report["bill_to_act_delta"])
+        st.markdown("**Did the democratic process work?**")
+        st.write(report["process_analysis"])
+        st.caption(
+            "AI-generated from web search, Hansard and the Bill and Act texts. "
+            "Check the sources; this is not an official assessment."
+        )
     render_meter(previous_score, level)
     st.subheader("Comparison report")
     st.write(previous["summary"])
