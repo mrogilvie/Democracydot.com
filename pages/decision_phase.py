@@ -89,7 +89,7 @@ def summarize_bill_status(status: BillStatus) -> str:
 
 
 st.title("Democratic Engagement")
-st.write("Ask questions with Billbow Q&A and send constituent feedback.")
+st.write("Ask questions with Billbow and send constituent feedback.")
 st.caption(
     "Questions and Bill source text are sent to OpenAI when you request an answer. "
     "Add only material you are authorized to share."
@@ -304,7 +304,7 @@ if isinstance(links, list):
 
 st.session_state["parliament_documents"] = []
 
-st.subheader("Billbow Q&A")
+st.subheader("Billbow")
 st.caption(
     "Billbow allows you to ask specific questions about the Bill. Billbow will load "
     "the relevant parliamentary documents and use them to generate AI supported answers."
