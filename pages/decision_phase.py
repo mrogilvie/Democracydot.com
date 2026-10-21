@@ -198,26 +198,30 @@ st.caption(
     "Comments are anonymous and saved so the app owner can review them. They are "
     "not sent to Parliament. Avoid including personal or sensitive information."
 )
-with st.form("billbow_form", clear_on_submit=True):
-    bill_title = st.text_input(
-        "Bill name or number",
-        value=st.session_state.get("bill_title", ""),
-        help="Comments are grouped by this Bill in the owner review page.",
+comment_bill = (
+    st.session_state.get("bill_title", "").strip()
+    or st.session_state.get("parliament_bill_name", "").strip()
+)
+if comment_bill:
+    st.caption(f"Your comment will be saved against: **{comment_bill}**")
+with st.container():
+    comment = st.chat_input(
+        "What would you like decision-makers to understand about this Bill? "
+        "Press Enter to send.",
+        key="constituent_comment",
     )
-    comment = st.text_area(
-        "What would you like decision-makers to understand about this Bill?",
-        height=130,
-    )
-    submit_comment = st.form_submit_button("Submit comment")
 
-if submit_comment:
-    if not bill_title.strip():
-        st.warning("Enter the name or number of the Bill this comment is about.")
+if comment:
+    if not comment_bill:
+        st.warning(
+            "Enter a Bill name above or on the Bill Information page, then send "
+            "your comment again."
+        )
     elif not comment.strip():
-        st.warning("Enter a comment before submitting.")
+        st.warning("Enter a comment before sending.")
     else:
         try:
-            save_comment(comment, bill_title)
+            save_comment(comment, comment_bill)
         except (OSError, sqlite3.Error) as error:
             st.error(f"Could not save your comment: {error}")
         else:
