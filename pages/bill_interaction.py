@@ -1,6 +1,5 @@
 from json import JSONDecodeError, loads
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlparse
 
 import streamlit as st
 from openai import OpenAIError
@@ -160,50 +159,45 @@ if saved:
     st.session_state["bill_policy"] = policy.strip()
     st.success("Bill information saved for this app session.")
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def lookup_full_bill_title(bill_name: str) -> tuple[str, str] | None:
+    try:
+        page_url, full_title = find_parliament_bill_page(bill_name)
+    except (HTTPError, URLError, TimeoutError, UnicodeDecodeError, ValueError):
+        return None
+    return full_title, page_url
+
+
 st.subheader("Essential reading")
-with st.form("essential_link_form", clear_on_submit=True):
-    link_label = st.text_input("Link title", placeholder="Bill page or Hansard")
-    link_url = st.text_input(
-        "Web address",
-        placeholder="https://www.parliament.tas.gov.au/...",
-    )
-    add_link = st.form_submit_button("Add link")
-
-if add_link:
-    parsed_url = urlparse(link_url.strip())
-    if not link_label.strip() or parsed_url.scheme != "https" or not parsed_url.netloc:
-        st.error("Provide a title and a valid HTTPS web address.")
-    else:
-        links = st.session_state.get("essential_links", [])
-        if not isinstance(links, list):
-            links = []
-        links.append({"label": link_label.strip(), "url": link_url.strip()})
-        st.session_state["essential_links"] = links
-        st.success("Essential reading link added.")
-
-links = st.session_state.get("essential_links", [])
-if isinstance(links, list):
-    for index, link in enumerate(links):
-        if isinstance(link, dict) and link.get("label") and link.get("url"):
-            label = link["label"]
-            if index == 0 and label == "Bill as passed":
-                label = "Bill as passed (if avail)"
-            st.link_button(label, link["url"])
-
 entered_bill = (
     st.session_state.get("bill_title_input") or st.session_state.get("bill_title", "")
 ).strip()
-hansard_bill = entered_bill
-if hansard_bill:
-    hansard_links = find_hansard_debate_links(hansard_bill)
-    for label, url in hansard_links:
-        st.link_button(label, url)
+bill_record = lookup_full_bill_title(entered_bill) if entered_bill else None
+st.text_input(
+    "Full Bill title and number",
+    value=bill_record[0] if bill_record else "",
+    placeholder="Enter a Bill name or number above",
+    disabled=True,
+)
+if entered_bill and not bill_record:
+    st.caption("No matching Bill was found in Tasmanian Parliament records.")
+
+hansard_links = find_hansard_debate_links(entered_bill) if entered_bill else []
+for label, url in hansard_links:
+    st.link_button(label, url)
+if entered_bill and hansard_links:
     st.caption(
         "Hansard links are added automatically from the Parliament of Tasmania "
         "Hansard search for this Bill name."
-        if hansard_links
-        else "No Hansard debates were found for this Bill name yet."
     )
+elif entered_bill:
+    st.caption("No Hansard debates were found for this Bill name yet.")
+
+essential_links = []
+if bill_record:
+    essential_links.append({"label": bill_record[0], "url": bill_record[1]})
+essential_links.extend({"label": l, "url": u} for l, u in hansard_links)
+st.session_state["essential_links"] = essential_links
 
 with st.expander("Draft a plain-language summary with AI"):
     if st.button("Draft summary from saved material", key="draft_bill_summary"):
