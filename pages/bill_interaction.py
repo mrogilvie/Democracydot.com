@@ -5,8 +5,6 @@ from urllib.error import HTTPError, URLError
 import streamlit as st
 from openai import OpenAIError
 
-from follow_dialog import show_follow_dialog
-
 from demodot import (
     MODEL,
     PARLIAMENT_HOST,
@@ -21,6 +19,7 @@ from demodot import (
     get_openai_client,
     report_openai_error,
 )
+from follow_dialog import show_follow_dialog
 
 
 MAX_AUTOCOMPLETE_CHARS = 60000

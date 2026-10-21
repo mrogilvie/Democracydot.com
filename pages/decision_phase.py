@@ -16,6 +16,7 @@ from demodot import (
     get_openai_client,
     get_source_material,
     report_openai_error,
+    sync_session_bill,
 )
 
 
@@ -26,11 +27,13 @@ st.caption(
     "Add only material you are authorized to share."
 )
 
+auto_search = sync_session_bill("parliament_bill_name", "page2_synced_bill")
 searched_bill_name = st.text_input(
     "Enter Bill name",
     key="parliament_bill_name",
+    help="Filled in from the Bill you entered on Bill Information.",
 )
-if st.button("Search Parliament Bills", key="search_interaction_bill"):
+if st.button("Search Parliament Bills", key="search_interaction_bill") or auto_search:
     if not searched_bill_name.strip():
         st.warning("Enter a Bill name to search Parliament records.")
     else:

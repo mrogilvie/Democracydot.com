@@ -401,3 +401,17 @@ def _fit_hansard_budget(results: list[tuple[str, str]]) -> list[tuple[str, str]]
             text = f"{text[:head]}\n[... debate text trimmed ...]\n{text[-tail:]}"
         fitted.append((sitting, text))
     return fitted
+
+
+def sync_session_bill(widget_key: str, marker_key: str) -> bool:
+    """Copy the Bill entered on page 1 into a page's own Bill box.
+
+    Returns True when a new Bill arrived since this page last synced, so the
+    page can run its search automatically.
+    """
+    bill = st.session_state.get("bill_title", "").strip()
+    if not bill or st.session_state.get(marker_key) == bill:
+        return False
+    st.session_state[widget_key] = bill
+    st.session_state[marker_key] = bill
+    return True
