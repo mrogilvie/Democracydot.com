@@ -2,6 +2,7 @@ import json
 import os
 import re
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from pathlib import Path
 from html import unescape as html_unescape
@@ -603,6 +604,106 @@ def _fit_hansard_budget(results: list[tuple[str, str]]) -> list[tuple[str, str]]
             text = f"{text[:head]}\n[... debate text trimmed ...]\n{text[-tail:]}"
         fitted.append((sitting, text))
     return fitted
+
+
+PETITION_SITES = {
+    "House of Assembly": "https://haepetitions.parliament.tas.gov.au/haepet",
+    "Legislative Council": "https://lcepetitions.parliament.tas.gov.au/lcepet",
+}
+PETITIONS_INFO_URL = f"{PARLIAMENT_URL.rstrip('/')}/petitions"
+_PETITION_STOPWORDS = frozenset(
+    "a an and as at bill bills by for from in into of on or the to with act acts "
+    "amendment amendments miscellaneous related legislation consequential "
+    "provisions repeal tasmania tasmanian state no".split()
+)
+_PETITION_ITEM = re.compile(
+    r'PetitionDetails/(\d+)\?[^"]*">\s*(.*?)\s*</a>', re.DOTALL
+)
+
+
+def bill_subject_keywords(bill_name: str) -> tuple[str, list[str]]:
+    """Return the Bill's subject phrase and its distinctive keywords."""
+    phrase = re.sub(r"\s*\(\s*\d+\s+of\s+\d{4}\s*\)\s*$", "", bill_name)
+    phrase = re.sub(r"\bBill\b.*$", "", phrase, flags=re.IGNORECASE)
+    phrase = re.sub(r"\bAmendment\b", "", phrase, flags=re.IGNORECASE)
+    phrase = " ".join(re.sub(r"[^\w\s]", " ", phrase).split()).casefold()
+    words = [
+        w for w in phrase.split() if w not in _PETITION_STOPWORDS and len(w) > 3
+    ]
+    return phrase, list(dict.fromkeys(words))
+
+
+def _fetch_petition_page(url: str, allowed_host: str) -> str:
+    request = Request(url, headers={"User-Agent": "Democracydot/1.0"})
+    with urlopen(request, timeout=15) as response:
+        if urlparse(response.geturl()).hostname != allowed_host:
+            raise ValueError("Unexpected redirect from the e-petitions site.")
+        return response.read().decode("utf-8", errors="replace")
+
+
+def _petition_text(page: str) -> str:
+    page = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", page, flags=re.DOTALL)
+    return " ".join(html_unescape(re.sub(r"<[^>]+>", " ", page)).split())
+
+
+@st.cache_data(ttl=6 * 3600, show_spinner=False)
+def load_petitions() -> list[dict[str, str]]:
+    """Load every open and closed e-petition from both chambers, with its text."""
+    entries = []
+    for chamber, base in PETITION_SITES.items():
+        host = urlparse(base).hostname
+        for listing in (base, f"{base}/Home/ClosedPetitions"):
+            try:
+                page = _fetch_petition_page(listing, host)
+            except (OSError, ValueError):
+                continue
+            for petition_id, title in _PETITION_ITEM.findall(page):
+                entries.append(
+                    {
+                        "chamber": chamber,
+                        "title": " ".join(html_unescape(title).split()),
+                        "url": f"{base}/Home/PetitionDetails/{petition_id}",
+                        "host": host,
+                    }
+                )
+
+    def add_text(entry: dict[str, str]) -> dict[str, str]:
+        try:
+            body = _petition_text(_fetch_petition_page(entry["url"], entry["host"]))
+        except (OSError, ValueError):
+            body = ""
+        return {**entry, "text": body}
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return list(pool.map(add_text, entries))
+
+
+def find_parliament_petitions(
+    bill_name: str, limit: int = 6
+) -> list[tuple[str, str]]:
+    """Return (label, url) e-petitions on the Bill or its subject matter."""
+    phrase, keywords = bill_subject_keywords(bill_name)
+    if not keywords:
+        return []
+    scored = []
+    for petition in load_petitions():
+        title = petition["title"].casefold()
+        body = petition["text"].casefold()
+        score = 0
+        if phrase and phrase in body:
+            score += 10
+        score += 3 * sum(1 for word in keywords if word in title)
+        score += sum(1 for word in keywords if word in body)
+        in_title = any(word in title for word in keywords)
+        enough = len(keywords) == 1 or in_title or phrase in body
+        matched = sum(1 for word in keywords if word in body or word in title)
+        if score and enough and matched >= min(2, len(keywords)):
+            scored.append((score, petition))
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return [
+        (f"Petition ({p['chamber']}): {p['title']}", p["url"])
+        for _, p in scored[:limit]
+    ]
 
 
 def sync_session_bill(widget_key: str, marker_key: str) -> bool:
