@@ -91,8 +91,8 @@ def autocomplete_bill_information(bill_name: str) -> dict[str, str] | None:
 
 st.title("Bill Information")
 st.write(
-    "Build a clear information page for the Bill: its summary, background, "
-    "policy context, and essential reading."
+    "This function is AI supported. A search of relevant information is "
+    "performed once you enter the Bill name."
 )
 st.caption(
     "Text is sent to OpenAI only when you request an AI feature, such as a summary "
