@@ -1,8 +1,11 @@
+import re
 from json import JSONDecodeError, loads
 from urllib.error import HTTPError, URLError
 
 import streamlit as st
 from openai import OpenAIError
+
+from follow_dialog import show_follow_dialog
 
 from demodot import (
     MODEL,
@@ -123,9 +126,12 @@ if st.session_state.pop("bill_autocomplete_requested", False):
                 ("policy", "bill_policy"),
             ):
                 st.session_state[key] = (
-                    st.session_state.get(key, "").strip() or drafted[field]
+                    st.session_state.get(f"{key}_input", "").strip()
+                    or st.session_state.get(key, "").strip()
+                    or drafted[field]
                 )
             st.session_state["bill_autocompleted"] = True
+            st.session_state["bill_autocompleted_now"] = True
             st.rerun()
 
 if st.session_state.pop("bill_autocompleted", False):
@@ -134,31 +140,27 @@ if st.session_state.pop("bill_autocompleted", False):
         "session. Review and edit them before relying on them."
     )
 
-with st.form("bill_information_form"):
-    summary = st.text_area(
-        "Bill summary",
-        value=st.session_state.get("bill_summary", ""),
-        height=130,
-        help="Enter an existing summary, or draft one from your source material below.",
-    )
-    background = st.text_area(
-        "Background information",
-        value=st.session_state.get("bill_background", ""),
-        height=160,
-    )
-    policy = st.text_area(
-        "Policy context",
-        value=st.session_state.get("bill_policy", ""),
-        height=160,
-    )
-    saved = st.form_submit_button("Save Bill information")
+FIELD_KEYS = {
+    "bill_summary": "bill_summary_input",
+    "bill_background": "bill_background_input",
+    "bill_policy": "bill_policy_input",
+}
+for stored_key, widget_key in FIELD_KEYS.items():
+    if widget_key not in st.session_state or st.session_state.get("bill_autocompleted_now"):
+        st.session_state[widget_key] = st.session_state.get(stored_key, "")
+st.session_state.pop("bill_autocompleted_now", None)
 
-if saved:
-    st.session_state["bill_title"] = st.session_state.get("bill_title_input", "").strip()
-    st.session_state["bill_summary"] = summary.strip()
-    st.session_state["bill_background"] = background.strip()
-    st.session_state["bill_policy"] = policy.strip()
-    st.success("Bill information saved for this app session.")
+st.text_area(
+    "Bill summary",
+    key="bill_summary_input",
+    height=130,
+    help="Enter an existing summary, or let AI draft it when you enter the Bill name.",
+)
+st.text_area("Background information", key="bill_background_input", height=160)
+st.text_area("Policy context", key="bill_policy_input", height=160)
+for stored_key, widget_key in FIELD_KEYS.items():
+    st.session_state[stored_key] = st.session_state[widget_key].strip()
+st.session_state["bill_title"] = st.session_state.get("bill_title_input", "").strip()
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def lookup_full_bill_title(bill_name: str) -> tuple[str, str] | None:
@@ -322,6 +324,74 @@ if result:
         "partial and not representative of all constituents. Check the cited "
         "sources."
     )
+
+st.divider()
+st.subheader("Download this Bill information")
+
+
+def build_bill_information_markdown() -> str:
+    lines = [f"# {bill_record[0] if bill_record else entered_bill}", ""]
+    for heading, key in (
+        ("Bill summary", "bill_summary"),
+        ("Background information", "bill_background"),
+        ("Policy context", "bill_policy"),
+    ):
+        text = st.session_state.get(key, "").strip()
+        if text:
+            lines += [f"## {heading}", "", text, ""]
+    if essential_links:
+        lines += ["## Essential reading", ""]
+        lines += [f"- [{link['label']}]({link['url']})" for link in essential_links]
+        lines.append("")
+    for heading, key, note in (
+        (
+            "Hansard AI summary",
+            "hansard_summary",
+            "AI-generated from Parliament of Tasmania Hansard; may be incomplete.",
+        ),
+        (
+            "The public discussion",
+            "public_discussion_result",
+            "AI-generated from web search results; not a poll.",
+        ),
+    ):
+        saved_result = st.session_state.get(key)
+        if saved_result and saved_result[0] in (entered_bill, hansard_name):
+            lines += [f"## {heading}", "", f"_{note}_", "", saved_result[1], ""]
+    lines += [
+        "---",
+        "Prepared with Democracydot. Information only, not legal advice. "
+        "Check the official Parliament of Tasmania records.",
+    ]
+    return "\n".join(lines)
+
+
+if st.button(
+    "Follow Madeleine Ogilvie MP on Facebook to download this information",
+    key="open_follow_dialog_bill_info",
+):
+    show_follow_dialog()
+st.caption(
+    "Downloads are available after you confirm that you follow Madeleine Ogilvie "
+    "MP on Facebook. This confirmation is not verified by Facebook."
+)
+follows_madeleine = st.checkbox(
+    "I follow Madeleine Ogilvie MP on Facebook",
+    key="bill_info_follows_madeleine",
+)
+if not entered_bill:
+    st.info("Enter a Bill name or number above to prepare a download.")
+elif follows_madeleine:
+    download_name = re.sub(r"[^A-Za-z0-9]+", "-", hansard_name).strip("-") or "bill"
+    st.download_button(
+        "Download Bill information",
+        data=build_bill_information_markdown(),
+        file_name=f"{download_name}-information.md",
+        mime="text/markdown",
+        key="download_bill_information",
+    )
+else:
+    st.info("Confirm that you follow the Facebook page to enable the download.")
 
 st.divider()
 st.link_button("Tasmanian Parliament website", PARLIAMENT_URL)
