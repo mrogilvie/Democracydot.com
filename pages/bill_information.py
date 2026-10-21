@@ -213,6 +213,38 @@ def generate_process_report(client, bill_name: str, original: str, final: str) -
     return report
 
 
+def create_index_report_html(result: dict, report: dict | None, title: str) -> str:
+    score = result["alignment_index"]
+    level = alignment_level(score)
+    sections = []
+    if report:
+        for heading, key in (
+            ("Public discussion", "public_discussion"),
+            ("Parliamentary debates", "parliamentary_debates"),
+            ("Bill compared with the Act as passed", "bill_to_act_delta"),
+            ("Did the democratic process work?", "process_analysis"),
+        ):
+            sections.append(
+                f"<h2>{heading}</h2><p>{html.escape(report[key])}</p>"
+            )
+    changes = "".join(f"<li>{html.escape(a)}</li>" for a in result["changed_areas"])
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Democracy Index: {html.escape(title)}</title>
+<style>body{{font:16px/1.6 system-ui,sans-serif;color:#172033;margin:2rem auto;max-width:800px;padding:0 1rem}}
+.score{{font-size:1.4rem;font-weight:700}}</style></head>
+<body>
+<h1>Democracy Index: {html.escape(title)}</h1>
+<p class="score">{score}/100 &middot; {html.escape(level)}</p>
+{''.join(sections)}
+<h2>Comparison report</h2><p>{html.escape(result["summary"])}</p>
+{f"<h3>Notable changes</h3><ul>{changes}</ul>" if changes else ""}
+<p><em>{html.escape(result["evidence_note"])}</em></p>
+<p><small>AI-assisted estimate; not an official parliamentary rating or a measure of democratic legitimacy.</small></p>
+</body></html>
+"""
+
+
 def alignment_level(score: int) -> str:
     for label, minimum, maximum in LEVELS:
         if minimum <= score <= maximum:
@@ -634,3 +666,21 @@ if isinstance(previous, dict):
         for area in previous["changed_areas"]:
             st.markdown(f"- {area}")
     st.caption(previous["evidence_note"])
+
+    st.markdown("**Download the Democracy Index**")
+    follows_for_index = st.checkbox(
+        "I follow Madeleine Ogilvie MP on Facebook",
+        key="follows_madeleine_ogilvie_mp_index",
+    )
+    if follows_for_index:
+        index_title = st.session_state.get("parliament_bill_search_name", "Bill")
+        index_slug = re.sub(r"[^A-Za-z0-9]+", "-", index_title).strip("-").lower()
+        st.download_button(
+            "Download Democracy Index",
+            data=create_index_report_html(previous, report, index_title),
+            file_name=f"{index_slug or 'bill'}-democracy-index.html",
+            mime="text/html",
+            key="download_democracy_index",
+        )
+    else:
+        st.info("Confirm that you follow the Facebook page to enable this download.")
