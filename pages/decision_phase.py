@@ -7,15 +7,21 @@ from openai import OpenAIError
 
 from comment_store import save_comment
 from demodot import (
+    BillStatus,
+    ChamberStatus,
     MAX_SOURCE_CHARS,
+    LEGISLATION_HOST,
     MODEL,
     PARLIAMENT_URL,
     extract_uploaded_text,
     fetch_official_pdf,
+    find_act_pdf_url,
     find_parliament_bill_page,
     find_parliament_bill_document_urls,
+    get_parliament_bill_status,
     get_openai_client,
     get_source_material,
+    parliament_bill_act_title,
     report_openai_error,
     publish_session_bill,
     sync_session_bill,
@@ -27,6 +33,46 @@ DOCUMENT_ORDER = (
     "Fact sheet",
     "Clause notes",
 )
+
+
+def format_chamber_status(status: ChamberStatus) -> str:
+    if status["negatived_date"]:
+        return f"Negatived on {status['negatived_date']}."
+    if status["passed_date"]:
+        return f"Passed on {status['passed_date']}."
+    latest_stage = status["latest_stage"]
+    latest_date = status["latest_date"]
+    if latest_stage and latest_date:
+        return (
+            f"Not recorded as passed; latest recorded stage: "
+            f"{latest_stage} ({latest_date})."
+        )
+    return "No passage stage is recorded."
+
+
+def summarize_bill_status(status: BillStatus) -> str:
+    house_passed = bool(status["house_of_assembly"]["passed_date"])
+    council_passed = bool(status["legislative_council"]["passed_date"])
+    if house_passed and council_passed:
+        summary = "The Bill is recorded as having passed both houses."
+    elif house_passed:
+        summary = (
+            "The Bill is recorded as having passed the House of Assembly; "
+            "passage in the Legislative Council is not recorded."
+        )
+    elif council_passed:
+        summary = (
+            "The Bill is recorded as having passed the Legislative Council; "
+            "passage in the House of Assembly is not recorded."
+        )
+    else:
+        summary = "The Bill is not recorded as having passed both houses."
+
+    royal_assent_date = status["royal_assent_date"]
+    if royal_assent_date:
+        return f"{summary} Royal Assent was received on {royal_assent_date}."
+    return f"{summary} Royal Assent is not recorded."
+
 
 st.title("Democratic Engagement")
 st.write("Ask questions with Billbow Q&A and send constituent feedback.")
@@ -52,6 +98,9 @@ if st.session_state.pop("interaction_search_requested", False) or auto_search:
     if not searched_bill_name.strip():
         st.warning("Enter a Bill name to search Parliament records.")
     else:
+        st.session_state.pop("interaction_bill_status", None)
+        st.session_state.pop("interaction_final_act_pdf_url", None)
+        st.session_state.pop("interaction_final_act_pdf", None)
         try:
             bill_page_url, bill_record_title = find_parliament_bill_page(
                 searched_bill_name.strip()
@@ -68,6 +117,9 @@ if st.session_state.pop("interaction_search_requested", False) or auto_search:
             st.session_state.pop("interaction_bill_pdf_url", None)
             st.session_state.pop("interaction_bill_pdf_bytes", None)
             st.session_state.pop("official_parliament_documents", None)
+            st.session_state.pop("interaction_bill_status", None)
+            st.session_state.pop("interaction_final_act_pdf_url", None)
+            st.session_state.pop("interaction_final_act_pdf", None)
         else:
             st.session_state["interaction_bill_page_url"] = bill_page_url
             st.session_state["interaction_bill_record_title"] = bill_record_title
@@ -115,6 +167,25 @@ if st.session_state.pop("interaction_search_requested", False) or auto_search:
                         }
                     )
             st.session_state["official_parliament_documents"] = official_documents
+            try:
+                bill_status = get_parliament_bill_status(bill_page_url)
+            except (OSError, URLError, UnicodeDecodeError, ValueError) as error:
+                st.warning(f"Could not retrieve the Bill's official passage status: {error}")
+                st.session_state.pop("interaction_bill_status", None)
+            else:
+                st.session_state["interaction_bill_status"] = bill_status
+                if bill_status["royal_assent_date"]:
+                    try:
+                        act_title = parliament_bill_act_title(bill_record_title)
+                        act_url = find_act_pdf_url(act_title)
+                        act_pdf = fetch_official_pdf(act_url, LEGISLATION_HOST)
+                    except (OSError, URLError, UnicodeDecodeError, ValueError) as error:
+                        st.warning(f"Could not retrieve the Act as passed: {error}")
+                        st.session_state.pop("interaction_final_act_pdf_url", None)
+                        st.session_state.pop("interaction_final_act_pdf", None)
+                    else:
+                        st.session_state["interaction_final_act_pdf_url"] = act_url
+                        st.session_state["interaction_final_act_pdf"] = act_pdf
 
 bill_page_url = st.session_state.get("interaction_bill_page_url")
 bill_record_title = st.session_state.get("interaction_bill_record_title")
@@ -163,18 +234,49 @@ if (
                 if isinstance(document_url, str):
                     st.link_button(f"Open {category} PDF", document_url)
 
-    final_act_pdf = st.session_state.get("parliament_act_pdf")
-    if isinstance(final_act_pdf, bytes):
-        with st.container(border=True):
-            st.subheader(f"{bill_record_title} — Final Act")
+    with st.container(border=True):
+        st.subheader("5. Final Act and passage status")
+        st.link_button("Open official Bill status record", bill_page_url)
+        bill_status = st.session_state.get("interaction_bill_status")
+        if isinstance(bill_status, dict):
+            st.write(f"**Summary:** {summarize_bill_status(bill_status)}")
+            st.write(
+                "**House of Assembly:** "
+                + format_chamber_status(bill_status["house_of_assembly"])
+            )
+            st.write(
+                "**Legislative Council:** "
+                + format_chamber_status(bill_status["legislative_council"])
+            )
+            royal_assent_date = bill_status["royal_assent_date"]
+            if royal_assent_date:
+                st.write(f"**Royal Assent:** Received on {royal_assent_date}.")
+            else:
+                st.write(
+                    "**Royal Assent:** No Royal Assent date is recorded on the "
+                    "official Bill record."
+                )
+        else:
+            st.info("The official passage status could not be retrieved.")
+
+        final_act_pdf = st.session_state.get("interaction_final_act_pdf")
+        final_act_url = st.session_state.get("interaction_final_act_pdf_url")
+        if isinstance(final_act_pdf, bytes) and isinstance(final_act_url, str):
+            st.link_button("Open Final Act (as passed) PDF", final_act_url)
             st.pdf(
                 final_act_pdf,
                 height=640,
                 key="interaction_final_act_pdf_viewer",
             )
-            final_act_url = st.session_state.get("parliament_act_pdf_url")
-            if isinstance(final_act_url, str):
-                st.link_button("Open Final Act PDF", final_act_url)
+        elif (
+            isinstance(bill_status, dict)
+            and not bill_status["royal_assent_date"]
+        ):
+            st.info("A Final Act is not available because Royal Assent is not recorded.")
+        elif not isinstance(bill_status, dict):
+            st.info("Final Act availability could not be checked.")
+        else:
+            st.info("No matching Final Act PDF is available.")
 
 links = st.session_state.get("essential_links", [])
 if isinstance(links, list):

@@ -3,20 +3,22 @@ import html
 import json
 import re
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode, urlparse
-from urllib.request import Request, urlopen
+from urllib.parse import urlparse
 
 import streamlit as st
 from openai import OpenAIError
 
 from demodot import (
+    LEGISLATION_HOST,
     MODEL,
     PARLIAMENT_URL,
     extract_uploaded_text,
     fetch_official_pdf,
+    find_act_pdf_url,
     find_parliament_bill_page,
     find_parliament_bill_pdf_url,
     get_openai_client,
+    parliament_bill_act_title,
     report_openai_error,
     publish_session_bill,
     sync_session_bill,
@@ -33,82 +35,12 @@ LEVELS = [
     ("Perfect Alignment", 85, 100),
 ]
 PARLIAMENT_HOST = urlparse(PARLIAMENT_URL).hostname
-LEGISLATION_URL = "https://www.legislation.tas.gov.au"
-LEGISLATION_HOST = urlparse(LEGISLATION_URL).hostname
-LEGISLATION_SEARCH_URL = f"{LEGISLATION_URL}/projectdata"
 
 
 def find_bill_record(bill_name: str) -> tuple[str, str]:
     bill_page, bill_record_title = find_parliament_bill_page(bill_name)
     bill_pdf_url = find_parliament_bill_pdf_url(bill_page)
-
-    clean_bill_title = re.sub(r"\s+\(\d+\s+of\s+\d{4}\)$", "", bill_record_title)
-    act_title, replacements = re.subn(
-        r"\bBill(?=(?:\s+\d{4})?$)",
-        "Act",
-        clean_bill_title,
-        count=1,
-        flags=re.IGNORECASE,
-    )
-    if replacements == 0:
-        raise ValueError("The Parliament record does not identify a matching Bill title.")
-    return bill_pdf_url, act_title
-
-
-def find_act_pdf_url(act_title: str) -> str:
-    expression = f'(PrintType="act.new") AND Title="{act_title}"'
-    query = urlencode(
-        {
-            "ds": "EnAct-FragTocRelationIdxDatasource",
-            "start": 1,
-            "count": 10,
-            "expression": expression,
-        }
-    )
-    request_url = f"{LEGISLATION_SEARCH_URL}?{query}"
-    request = Request(
-        request_url,
-        headers={
-            "User-Agent": "Democracydot/1.0",
-            "X-Requested-With": "XMLHttpRequest",
-        },
-    )
-    with urlopen(request, timeout=15) as response:
-        final_url = urlparse(response.geturl())
-        if final_url.scheme != "https" or final_url.hostname != LEGISLATION_HOST:
-            raise ValueError("The legislation website redirected to an unexpected address.")
-        result = json.loads(response.read().decode("utf-8"))
-
-    if not isinstance(result, dict):
-        raise ValueError("The legislation search returned an invalid result.")
-    records = result.get("data", [])
-    if isinstance(records, dict):
-        records = [records]
-    if not isinstance(records, list):
-        raise ValueError("The legislation search returned an invalid result.")
-    for record in records:
-        if not isinstance(record, dict):
-            continue
-        title_field = record.get("title")
-        id_field = record.get("id")
-        print_type_field = record.get("print.type")
-        if not all(
-            isinstance(field, dict)
-            for field in (title_field, id_field, print_type_field)
-        ):
-            continue
-        title = title_field.get("__value__")
-        act_id = id_field.get("__value__")
-        print_type = print_type_field.get("__value__")
-        if (
-            isinstance(title, str)
-            and title.casefold() == act_title.casefold()
-            and isinstance(act_id, str)
-            and re.fullmatch(r"act-\d{4}-\d{3}", act_id)
-            and print_type == "act.new"
-        ):
-            return f"{LEGISLATION_URL}/view/pdf/asmade/{act_id}"
-    raise ValueError(f"No Act as passed PDF was found for {act_title!r}.")
+    return bill_pdf_url, parliament_bill_act_title(bill_record_title)
 
 
 def extract_comparison_text(name: str, contents: bytes) -> str:
