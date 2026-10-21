@@ -1,7 +1,9 @@
 import os
 import re
+import zipfile
 from io import BytesIO
 from pathlib import Path
+from html import unescape as html_unescape
 from html.parser import HTMLParser
 from urllib.parse import unquote, urlencode, urljoin, urlparse
 from urllib.request import Request, urlopen
@@ -274,7 +276,6 @@ def get_source_material() -> str:
 def find_hansard_debate_links(bill_name: str) -> list[tuple[str, str]]:
     """Return official Hansard search links for each chamber that debated the Bill."""
     phrase = re.sub(r"\s*\(.*?\)\s*$", "", bill_name).strip()
-    phrase = re.sub(r"\s+\d{4}$", "", phrase)
     if not phrase:
         return []
     links = []
@@ -300,3 +301,85 @@ def find_hansard_debate_links(bill_name: str) -> list[tuple[str, str]]:
         if found and int(found.group(1)) > 0:
             links.append((f"Hansard debates: {chamber}", url))
     return links
+
+
+HANSARD_MAX_DOCUMENTS = 6
+HANSARD_MAX_DOWNLOAD_BYTES = 25 * 1024 * 1024
+HANSARD_MAX_SECTION_CHARS = 45000
+
+
+def _hansard_search_phrase(bill_name: str) -> str:
+    return re.sub(r"\s*\(.*?\)\s*$", "", bill_name).strip()
+
+
+def _extract_bill_sections(docx_bytes: bytes, phrase: str) -> list[str]:
+    """Return the Hansard text of each item whose heading names the Bill."""
+    with zipfile.ZipFile(BytesIO(docx_bytes)) as archive:
+        xml = archive.read("word/document.xml").decode("utf-8", errors="replace")
+    sections: list[list[str]] = []
+    inside = False
+    wanted = phrase.casefold()
+    for paragraph in re.findall(r"<w:p[ >].*?</w:p>", xml, re.S):
+        text = re.sub(r"<[^>]+>", "", paragraph)
+        text = html_unescape(text).strip()
+        if not text:
+            continue
+        if 'w:val="Heading1"' in paragraph:
+            inside = wanted in text.casefold()
+            if inside:
+                sections.append([text])
+            continue
+        if inside:
+            sections[-1].append(text)
+    return ["\n".join(lines) for lines in sections]
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_hansard_bill_debate(bill_name: str, chamber: str) -> list[tuple[str, str]]:
+    """Fetch (sitting day, text) for Hansard items about the Bill in one chamber."""
+    phrase = _hansard_search_phrase(bill_name)
+    if not phrase or chamber not in HANSARD_CHAMBERS:
+        return []
+    search_host = urlparse(HANSARD_SEARCH_URL).hostname
+    query = urlencode(
+        {
+            "IW_DATABASE": "Hansard",
+            "IW_SORT": "date",
+            "IW_FIELD_IN_AUTHOR": chamber,
+            "IW_FIELD_TEXT": f'"{phrase}"',
+        }
+    )
+    request = Request(
+        f"{HANSARD_SEARCH_URL}?{query}", headers={"User-Agent": "Democracydot/1.0"}
+    )
+    with urlopen(request, timeout=20) as response:
+        if urlparse(response.geturl()).hostname != search_host:
+            raise ValueError("Unexpected redirect from the Hansard search.")
+        page = response.read().decode("utf-8", errors="replace")
+
+    document_paths = []
+    for path in re.findall(
+        r'href="(/search/isysquery/[0-9a-f-]+/\d+/doc/[^"/]+\.docx)"', page
+    ):
+        if path not in document_paths:
+            document_paths.append(path)
+
+    results = []
+    for path in document_paths[:HANSARD_MAX_DOCUMENTS]:
+        document_request = Request(
+            f"https://{search_host}{path}", headers={"User-Agent": "Democracydot/1.0"}
+        )
+        with urlopen(document_request, timeout=60) as response:
+            if urlparse(response.geturl()).hostname != search_host:
+                raise ValueError("Unexpected redirect from the Hansard search.")
+            data = response.read(HANSARD_MAX_DOWNLOAD_BYTES + 1)
+        if len(data) > HANSARD_MAX_DOWNLOAD_BYTES:
+            continue
+        try:
+            sections = _extract_bill_sections(data, phrase)
+        except (zipfile.BadZipFile, KeyError):
+            continue
+        if sections:
+            sitting = unquote(path.rsplit("/", 1)[-1]).removesuffix(".docx")
+            results.append((sitting, "\n\n".join(sections)))
+    return results
