@@ -1,4 +1,5 @@
 import sqlite3
+from typing import TypedDict
 from urllib.error import URLError
 from urllib.parse import unquote, urlparse
 
@@ -7,8 +8,6 @@ from openai import OpenAIError
 
 from comment_store import save_comment
 from demodot import (
-    BillStatus,
-    ChamberStatus,
     MAX_SOURCE_CHARS,
     LEGISLATION_HOST,
     MODEL,
@@ -26,6 +25,20 @@ from demodot import (
     publish_session_bill,
     sync_session_bill,
 )
+
+
+class ChamberStatus(TypedDict):
+    passed_date: str | None
+    latest_stage: str | None
+    latest_date: str | None
+    negatived_date: str | None
+
+
+class BillStatus(TypedDict):
+    house_of_assembly: ChamberStatus
+    legislative_council: ChamberStatus
+    royal_assent_date: str | None
+
 
 DOCUMENT_ORDER = (
     "Bill as introduced",
