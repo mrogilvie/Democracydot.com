@@ -27,13 +27,13 @@ st.markdown(
         conversation. Quickly find relevant information, ask questions and
         receive plain-English answers with Billbow, and compare a Bill with the
         Act passed by the Tasmanian Parliament. Download a comparison document
-        showing the differences between the two documents.
+        showing the differences between the Bill and the Act.
       </p>
       <p>
         The Democracy Index estimates how closely the Act reflects the Bill and
         helps you explore how the Bill changed during the democratic process.
-        To access download in Democracydot I ask you to follow my Facebook page
-        to assist with ongoing communication and discussion.
+        To access downloads in Democracydot, I ask you to follow my Facebook
+        page to assist with ongoing communication and discussion.
       </p>
     </section>
     """,
