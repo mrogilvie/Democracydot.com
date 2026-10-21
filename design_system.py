@@ -126,6 +126,19 @@ def apply_design_system() -> None:
             background: var(--cornflower-deep);
             border-color: var(--cornflower-deep);
         }
+        [class*="st-key-"][class*="follow_dialog"] button {
+            background: var(--pink) !important;
+            border-color: var(--pink) !important;
+            color: #fff !important;
+        }
+        [class*="st-key-"][class*="follow_dialog"] button p {
+            color: #fff !important;
+        }
+        [class*="st-key-"][class*="follow_dialog"] button:hover {
+            background: #e01fb9 !important;
+            border-color: #e01fb9 !important;
+            box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
+        }
         .st-key-free_signup button {
             background: var(--pink) !important;
             border-color: var(--pink) !important;
