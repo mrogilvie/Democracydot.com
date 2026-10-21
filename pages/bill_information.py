@@ -120,7 +120,10 @@ def countdown_html(seconds: int) -> str:
 </script>"""
 
 
-def generate_process_report(client, bill_name: str, original: str, final: str) -> dict:
+def generate_process_report(
+    client, bill_name: str, original: str, final: str
+) -> dict:
+    has_act = bool(final.strip())
     with st.spinner("Searching public discussion..."):
         discussion = client.responses.create(
             model=MODEL,
@@ -180,13 +183,25 @@ def generate_process_report(client, bill_name: str, original: str, final: str) -
                 "each ONE neutral plain-English paragraph. "
                 "'parliamentary_debates': summarise the Hansard debate in both "
                 "houses using only the supplied Hansard text; say so if none was "
-                "found. 'bill_to_act_delta': summarise the key differences "
-                "between the original Bill and the Act as passed, or say there "
-                "are no material changes. 'process_analysis': assess whether the "
-                "democratic process worked, how much engagement happened "
-                "(public discussion, Hansard sittings, constituent comments "
-                "received) and any key changes made during the legislative "
-                "process. Do not overstate; note evidence limits."
+                "found. 'bill_to_act_delta': "
+                + (
+                    "summarise the key differences between the original Bill "
+                    "and the Act as passed, or say there are no material "
+                    "changes. "
+                    if has_act
+                    else "return an empty string; no Act has been passed yet. "
+                )
+                + "'process_analysis': assess whether the democratic process "
+                "is working, how much engagement happened (public discussion, "
+                "Hansard sittings, constituent comments received)"
+                + (
+                    " and any key changes made during the legislative process. "
+                    if has_act
+                    else ". The Bill has not yet become an Act, so say the "
+                    "process is still under way and make no claim about the "
+                    "final outcome. "
+                )
+                + "Do not overstate; note evidence limits."
             ),
             input=(
                 f"Bill: {bill_name}\n"
@@ -195,7 +210,11 @@ def generate_process_report(client, bill_name: str, original: str, final: str) -
                 f"PUBLIC DISCUSSION SUMMARY:\n{discussion}\n\n"
                 f"HANSARD:\n{debate_text}\n\n"
                 f"ORIGINAL BILL:\n{original.strip()[:REPORT_TEXT_LIMIT]}\n\n"
-                f"ACT AS PASSED:\n{final.strip()[:REPORT_TEXT_LIMIT]}"
+                + (
+                    f"ACT AS PASSED:\n{final.strip()[:REPORT_TEXT_LIMIT]}"
+                    if has_act
+                    else "ACT AS PASSED: none (the Bill has not yet passed)."
+                )
             ),
             text={
                 "format": {
@@ -213,9 +232,9 @@ def generate_process_report(client, bill_name: str, original: str, final: str) -
     return report
 
 
-def create_index_report_html(result: dict, report: dict | None, title: str) -> str:
-    score = result["alignment_index"]
-    level = alignment_level(score)
+def create_index_report_html(
+    result: dict | None, report: dict | None, title: str
+) -> str:
     title = " ".join(w[:1].upper() + w[1:] for w in title.split())
     sections = []
     if report:
@@ -225,10 +244,31 @@ def create_index_report_html(result: dict, report: dict | None, title: str) -> s
             ("Bill compared with the Act as passed", "bill_to_act_delta"),
             ("Did the democratic process work?", "process_analysis"),
         ):
-            sections.append(
-                f"<h2>{heading}</h2><p>{html.escape(report[key])}</p>"
-            )
-    changes = "".join(f"<li>{html.escape(a)}</li>" for a in result["changed_areas"])
+            if report.get(key):
+                sections.append(
+                    f"<h2>{heading}</h2><p>{html.escape(report[key])}</p>"
+                )
+    if result:
+        score = result["alignment_index"]
+        changes = "".join(
+            f"<li>{html.escape(a)}</li>" for a in result["changed_areas"]
+        )
+        index_block = f"""{meter_html(score, alignment_level(score))}
+<p><strong>What the Democracy Index measures:</strong> how closely the Act as passed
+matches the Bill as introduced, scored from 0 to 100 on whether the Act preserves the
+Bill's purpose and material provisions. A higher score means fewer substantive changes
+during the legislative process. It does not measure whether the law is good or whether
+the process was legitimate.</p>"""
+        comparison_block = f"""<h2>Comparison report</h2><p>{html.escape(result["summary"])}</p>
+{f"<h3>Notable changes</h3><ul>{changes}</ul>" if changes else ""}
+<p><em>{html.escape(result["evidence_note"])}</em></p>"""
+    else:
+        index_block = (
+            "<p><strong>Status:</strong> this Bill has not yet passed into an Act, so "
+            "no comparison between the Bill and an Act is included. The sections "
+            "below cover engagement so far.</p>"
+        )
+        comparison_block = ""
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Democracy Index: {html.escape(title)}</title>
@@ -236,16 +276,9 @@ def create_index_report_html(result: dict, report: dict | None, title: str) -> s
 .score{{font-size:1.4rem;font-weight:700}}</style></head>
 <body>
 <h1>Democracy Index: {html.escape(title)}</h1>
-{meter_html(score, level)}
-<p><strong>What the Democracy Index measures:</strong> how closely the Act as passed
-matches the Bill as introduced, scored from 0 to 100 on whether the Act preserves the
-Bill's purpose and material provisions. A higher score means fewer substantive changes
-during the legislative process. It does not measure whether the law is good or whether
-the process was legitimate.</p>
+{index_block}
 {''.join(sections)}
-<h2>Comparison report</h2><p>{html.escape(result["summary"])}</p>
-{f"<h3>Notable changes</h3><ul>{changes}</ul>" if changes else ""}
-<p><em>{html.escape(result["evidence_note"])}</em></p>
+{comparison_block}
 <p><small>This document was produced via Democracydot (www.democracydot.com) and its use is subject to the Democracydot Terms and Conditions.</small></p>
 <p><small>AI-assisted estimate; not an official parliamentary rating or a measure of democratic legitimacy.</small></p>
 </body></html>
