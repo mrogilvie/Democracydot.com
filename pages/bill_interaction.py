@@ -190,7 +190,10 @@ if isinstance(links, list):
                 label = "Bill as passed (if avail)"
             st.link_button(label, link["url"])
 
-hansard_bill = st.session_state.get("bill_title", "").strip()
+entered_bill = (
+    st.session_state.get("bill_title_input") or st.session_state.get("bill_title", "")
+).strip()
+hansard_bill = entered_bill
 if hansard_bill:
     hansard_links = find_hansard_debate_links(hansard_bill)
     for label, url in hansard_links:
@@ -233,9 +236,9 @@ st.caption(
     "summarises the sentiment it finds. Only the Bill name is sent to OpenAI."
 )
 if st.button("The public discussion", key="public_discussion"):
-    discussion_bill = st.session_state.get("bill_title", "").strip()
+    discussion_bill = entered_bill
     if not discussion_bill:
-        st.warning("Save a Bill name or number above first.")
+        st.warning("Enter a Bill name or number above first.")
     else:
         client = get_openai_client()
         if client:
