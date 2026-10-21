@@ -16,6 +16,7 @@ from demodot import (
     PARLIAMENT_URL,
     extract_uploaded_text,
     fetch_hansard_bill_debate,
+    match_parliament_petitions,
     fetch_official_pdf,
     find_act_pdf_url,
     find_parliament_bill_page,
@@ -96,6 +97,20 @@ def create_marked_up_html(original_text: str, act_text: str, title: str) -> str:
 
 
 REPORT_TEXT_LIMIT = 30_000
+PETITION_WEIGHTS = [
+    (5000, "Very high"),
+    (1000, "High"),
+    (100, "Moderate"),
+    (1, "Limited"),
+    (0, "No petition signatures found"),
+]
+
+
+def petition_weight(total_signatures: int) -> str:
+    for minimum, label in PETITION_WEIGHTS:
+        if total_signatures >= minimum:
+            return label
+    return PETITION_WEIGHTS[-1][1]
 ESTIMATED_SECONDS = 120
 
 
@@ -159,6 +174,21 @@ def generate_process_report(
         for chamber, sittings in debates.items()
     )
     sitting_count = sum(len(sittings) for sittings in debates.values())
+    with st.spinner("Checking parliamentary petitions..."):
+        petitions = [
+            {
+                "title": str(p["title"]),
+                "chamber": str(p["chamber"]),
+                "url": str(p["url"]),
+                "signatures": int(p["signatures"]),
+            }
+            for p in match_parliament_petitions(bill_name)
+        ]
+    total_signatures = sum(p["signatures"] for p in petitions)
+    petition_lines = "\n".join(
+        f"- {p['title']} ({p['chamber']}): {p['signatures']:,} signatures"
+        for p in petitions
+    ) or "(No related e-petitions found.)"
     comment_count = sum(
         1
         for item in get_comments()
@@ -193,7 +223,10 @@ def generate_process_report(
                 )
                 + "'process_analysis': assess whether the democratic process "
                 "is working, how much engagement happened (public discussion, "
-                "Hansard sittings, constituent comments received)"
+                "Hansard sittings, constituent comments received, and "
+                "parliamentary petition signatures as an indicator of public "
+                "interest and democratic importance; signatures are not a poll "
+                "and paper petitions are not counted)"
                 + (
                     " and any key changes made during the legislative process. "
                     if has_act
@@ -206,7 +239,9 @@ def generate_process_report(
             input=(
                 f"Bill: {bill_name}\n"
                 f"Hansard sittings found: {sitting_count}\n"
-                f"Constituent comments received on Democracydot: {comment_count}\n\n"
+                f"Constituent comments received on Democracydot: {comment_count}\n"
+                f"Related e-petition signatures in total: {total_signatures:,}\n"
+                f"Related e-petitions:\n{petition_lines}\n\n"
                 f"PUBLIC DISCUSSION SUMMARY:\n{discussion}\n\n"
                 f"HANSARD:\n{debate_text}\n\n"
                 f"ORIGINAL BILL:\n{original.strip()[:REPORT_TEXT_LIMIT]}\n\n"
@@ -229,7 +264,27 @@ def generate_process_report(
     report = json.loads(response.output_text)
     report["public_discussion"] = discussion
     report["bill_name"] = bill_name
+    report["petitions"] = petitions
+    report["petition_signatures"] = total_signatures
+    report["petition_weight"] = petition_weight(total_signatures)
     return report
+
+
+def petition_section_html(report: dict) -> str:
+    items = "".join(
+        f'<li><a href="{html.escape(p["url"])}">{html.escape(p["title"])}</a> '
+        f'({html.escape(p["chamber"])}): {p["signatures"]:,} signatures</li>'
+        for p in report.get("petitions", [])
+    )
+    return (
+        "<h2>Democratic importance (petition signatures)</h2>"
+        f"<p><strong>{html.escape(report.get('petition_weight', ''))}</strong> "
+        f"&middot; {report.get('petition_signatures', 0):,} signatures across "
+        f"{len(report.get('petitions', []))} related e-petition(s).</p>"
+        + (f"<ul>{items}</ul>" if items else "")
+        + "<p><small>Signatures indicate public interest; they are not a poll "
+        "and paper petitions are not counted.</small></p>"
+    )
 
 
 def create_index_report_html(
@@ -248,6 +303,7 @@ def create_index_report_html(
                 sections.append(
                     f"<h2>{heading}</h2><p>{html.escape(report[key])}</p>"
                 )
+        sections.append(petition_section_html(report))
     if result:
         score = result["alignment_index"]
         changes = "".join(
@@ -704,6 +760,23 @@ if isinstance(previous, dict) or isinstance(report, dict):
         if report.get("bill_to_act_delta"):
             st.markdown("**Bill compared with the Act as passed**")
             st.write(report["bill_to_act_delta"])
+        st.markdown("**Democratic importance (petition signatures)**")
+        st.write(
+            f"**{report.get('petition_weight', 'No petition signatures found')}** "
+            f"· {report.get('petition_signatures', 0):,} signatures across "
+            f"{len(report.get('petitions', []))} related e-petition(s)."
+        )
+        for petition in report.get("petitions", []):
+            st.markdown(
+                f"- [{petition['title']}]({petition['url']}) "
+                f"({petition['chamber']}): {petition['signatures']:,} signatures"
+            )
+        st.caption(
+            "Weighting: 1-99 signatures limited, 100-999 moderate, 1,000-4,999 "
+            "high, 5,000+ very high. Signatures indicate public interest; they "
+            "are not a poll, may overlap between petitions, and paper petitions "
+            "are not counted."
+        )
         st.markdown("**Did the democratic process work?**")
         st.write(report["process_analysis"])
         st.caption(
