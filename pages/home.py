@@ -59,6 +59,9 @@ st.markdown(
         flex-direction: column;
       }
       [class*="st-key-dd-home-card-"] { flex: 1 1 auto; }
+      [class*="st-key-dd-home-card-"] > [data-testid="stElementContainer"]:last-child {
+        margin-top: auto;
+      }
     </style>
     """,
     unsafe_allow_html=True,
