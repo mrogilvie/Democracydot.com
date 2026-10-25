@@ -108,7 +108,11 @@ Streamlit prints a local URL in the terminal. Open it in a browser to use the ap
 
 ## Deployment
 
-The app is deployed from this repository on Streamlit Community Cloud (repository `mrogilvie/Democracydot.com`, branch `main`, main file `app.py`). Add `OPENAI_API_KEY` and `DEMOCRACYDOT_OWNER_PASSWORD` under **Advanced settings → Secrets**. Add `DATABASE_URL` there if durable hosted storage is configured. Pushes to `main` update the live app. Community Cloud does not support custom domains, so the app is served from a `streamlit.app` address.
+The app is deployed from this repository on Streamlit Community Cloud (repository `mrogilvie/Democracydot.com`, branch `main`, main file `app.py`). Add `OPENAI_API_KEY` and `DEMOCRACYDOT_OWNER_PASSWORD` under **Advanced settings → Secrets**. Add `DATABASE_URL` there if durable hosted storage is configured. Pushes to `main` update the live app at `https://democracydotcom.streamlit.app/`.
+
+### Public landing website
+
+A separate, static public website is in `docs/`. To publish it, open the repository's **Settings → Pages**, choose **Deploy from a branch**, select `main` and the `/docs` folder, and save. GitHub Pages will publish the landing page at the URL shown in those settings; later pushes to `docs/` update it. The site links to the existing Streamlit app, which remains deployed separately. A custom domain can be configured in GitHub Pages if one is available.
 
 ### Public repository
 
@@ -135,6 +139,7 @@ pages/
 PRIVACY.md                  Privacy Policy text
 TERMS.md                    Terms and Conditions text
 requirements.txt            Python dependencies
+docs/                       Static public landing website (GitHub Pages)
 ```
 
 ## Saved Bill snapshot
