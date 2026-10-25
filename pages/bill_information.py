@@ -581,21 +581,12 @@ with st.container(border=True):
     st.subheader("Compare document")
     st.caption(
         "Generate a document that marks every change between the introduced "
-        "Bill and the Act as passed. To generate and download it, please follow "
-        "Madeleine Ogilvie MP on Facebook and confirm below. This confirmation "
-        "is not verified by Facebook."
-    )
-    follows_madeleine = st.checkbox(
-        "I follow Madeleine Ogilvie MP on Facebook",
-        key="follows_madeleine_ogilvie_mp",
+        "Bill and the Act as passed."
     )
     generate_compare = st.button(
         "Generate compare document",
         key="generate_compare_document",
-        disabled=not follows_madeleine,
     )
-    if not follows_madeleine:
-        st.info("Confirm that you follow the Facebook page to enable this button.")
 
     if generate_compare:
         compare_original = st.session_state.get("original_bill_text", "")
@@ -621,7 +612,7 @@ with st.container(border=True):
                 f"{safe_compare_title or 'Bill'}-marked-up.html"
             )
 
-    if follows_madeleine and st.session_state.get("marked_up_html"):
+    if st.session_state.get("marked_up_html"):
         st.caption(
             "Red text was removed from the introduced Bill; green text was added "
             "in the Act as passed."
