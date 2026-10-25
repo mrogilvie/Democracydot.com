@@ -97,7 +97,14 @@ def urlopen(request: Request, timeout: float):
             if error.code != 403:
                 raise
             last_error = error
-    raise last_error
+    raise HTTPError(
+        last_error.url,
+        last_error.code,
+        f"Forbidden - refused by {urlparse(last_error.url).hostname} "
+        f"({last_error.url})",
+        last_error.headers,
+        None,
+    )
 
 
 class _ParliamentLinkParser(HTMLParser):
