@@ -78,6 +78,19 @@ The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are 
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.
 
+## Assessment criteria check
+
+Checked against the assessment criteria (select a discrete legal task and build an AI tool that lets the user complete it).
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| A specific legal task | Met | Analysing a Tasmanian Bill: its text, debates, public discussion, Act as passed, and how the Act differs from the Bill. |
+| 3 discrete steps | Met | The three pages: **Bill Information**, **Democratic Engagement** and **Democracy Index** (listed in `app.py`). |
+| At least 5 AI calls per run | Met | Bill field auto-fill is 1 call, and the Guided Bill Analysis in `pages/bill_interaction.py` makes several more. A full Democracy Index adds 3 calls: public discussion, process analysis and document comparison. Hansard summary, public discussion, Q&A and amendment drafting each have their own call. Several calls are button-triggered, so the count depends on the path taken. |
+| User input | Met | Bill name search, uploads, questions, an amendment description and comments. |
+| Output | Met | On-screen analyses, the Democracy Index score, a compare document and downloadable reports. |
+| Deployed on Streamlit with an API credentials sidebar | Met | The sidebar in `app.py` has a password-type "OpenAI API key" field, falling back to `OPENAI_API_KEY` in secrets or the environment. Deployed at `democracydotcom.streamlit.app`. |
+
 ## Development setup
 
 Create and activate the virtual environment, then install the project dependencies:
