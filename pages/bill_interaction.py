@@ -1,5 +1,7 @@
 import html
 import re
+import sqlite3
+import uuid
 from json import JSONDecodeError, loads
 from urllib.error import HTTPError, URLError
 
@@ -23,6 +25,7 @@ from demodot import (
     get_openai_client,
     report_openai_error,
 )
+from comment_store import save_signup
 from follow_dialog import show_follow_dialog
 
 
@@ -58,14 +61,16 @@ def ask_guided_analysis(client, task: str, text: str, max_tokens: int = 700) -> 
     return response.output_text.strip()
 
 
-def create_guided_report_html(report: str, title: str) -> str:
+def create_guided_report_html(
+    report: str, title: str, label: str = "Bill analysis"
+) -> str:
     body = markdown.markdown(html.escape(report, quote=False), extensions=["extra"])
     return f"""<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bill analysis: {html.escape(title)}</title>
+  <title>{html.escape(label)}: {html.escape(title)}</title>
   <style>
     body {{ background: #f7f9ff; color: #102a43; font: 16px/1.65 system-ui, sans-serif; margin: 0; padding: 2rem 1.25rem; }}
     main {{ background: #fff; border: 1px solid #e0e8f3; border-radius: 20px; box-shadow: 0 12px 32px rgba(16, 42, 67, .06); margin: 0 auto; max-width: 860px; padding: 2rem 2.5rem; }}
@@ -213,14 +218,7 @@ st.write(
     "This function is AI supported. A search of relevant information is "
     "performed once you enter the Bill name."
 )
-st.caption(
-    "Text is sent to OpenAI only when you request an AI feature, such as a summary "
-    "or when you enter a Bill name. Add only material you are authorized to share."
-)
-
-st.caption(
-    "Add the Bill-specific Parliament and Hansard links under Essential reading."
-)
+download_area = st.container()
 
 def request_autocomplete():
     st.session_state["bill_autocomplete_requested"] = True
@@ -455,6 +453,28 @@ if hansard_summary and hansard_summary[0] == hansard_name:
         "or wrong; long debates are trimmed. Read the Hansard links above for "
         "the full record."
     )
+    summary_unlocked = bool(
+        st.session_state.get("bill_info_follows_madeleine")
+        and st.session_state.get("signup_saved")
+    )
+    summary_slug = re.sub(r"[^A-Za-z0-9]+", "-", hansard_name).strip("-") or "bill"
+    st.download_button(
+        "Download Summary",
+        data=create_guided_report_html(
+            f"# Hansard summary: {hansard_name}\n\n{hansard_summary[1]}",
+            hansard_name,
+            "Hansard summary",
+        ),
+        file_name=f"{summary_slug}-hansard-summary.html",
+        mime="text/html",
+        key="download_hansard_summary",
+        disabled=not summary_unlocked,
+    )
+    if not summary_unlocked:
+        st.caption(
+            "Tick the Facebook box and enter your name and mobile number near the "
+            "top of this page to enable the download."
+        )
 
 st.subheader("The public discussion")
 st.caption(
@@ -505,7 +525,6 @@ if result:
     )
 
 st.divider()
-st.subheader("Download this Bill information")
 
 
 def build_bill_information_markdown() -> str:
@@ -545,22 +564,52 @@ def build_bill_information_markdown() -> str:
     return "\n".join(lines)
 
 
-if st.button(
-    "Follow Madeleine Ogilvie MP on Facebook to download this information",
-    key="open_follow_dialog_bill_info",
-):
-    show_follow_dialog()
-st.caption(
-    "Downloads are available after you confirm that you follow Madeleine Ogilvie "
-    "MP on Facebook. This confirmation is not verified by Facebook."
-)
-follows_madeleine = st.checkbox(
-    "I follow Madeleine Ogilvie MP on Facebook",
-    key="bill_info_follows_madeleine",
-)
-if not entered_bill:
-    st.info("Enter a Bill name or number above to prepare a download.")
-elif follows_madeleine:
+with download_area:
+    if st.button(
+        "Please follow me on facebook for downloads access",
+        key="open_follow_dialog_bill_info",
+    ):
+        show_follow_dialog()
+    st.caption("It's an honour system")
+    follows_madeleine = st.checkbox(
+        "I follow Madeleine Ogilvie MP on Facebook",
+        key="bill_info_follows_madeleine",
+    )
+    if follows_madeleine and not st.session_state.get("signup_saved"):
+        with st.form("download_signup_form"):
+            signup_name = st.text_input("Name")
+            signup_mobile = st.text_input("Mobile number")
+            st.caption(
+                "Your name and mobile number are collected and stored by "
+                "Democracydot so you can be contacted about updates and "
+                "announcements."
+            )
+            continue_clicked = st.form_submit_button("Continue")
+        if continue_clicked:
+            digits = re.sub(r"\D", "", signup_mobile)
+            if not signup_name.strip():
+                st.warning("Enter your name to continue.")
+            elif len(digits) < 8 or len(digits) > 15:
+                st.warning("Enter a valid mobile number to continue.")
+            else:
+                st.session_state.setdefault("signup_device_token", uuid.uuid4().hex)
+                try:
+                    save_signup(
+                        signup_name,
+                        signup_mobile,
+                        st.session_state["signup_device_token"],
+                    )
+                except ValueError as error:
+                    st.warning(str(error))
+                except (OSError, sqlite3.Error) as error:
+                    st.error(f"Could not save your details: {error}")
+                else:
+                    st.session_state["signup_saved"] = True
+                    st.rerun()
+    if entered_bill and not follows_madeleine:
+        st.info("Confirm that you follow the Facebook page to enable the download.")
+
+if entered_bill and follows_madeleine and st.session_state.get("signup_saved"):
     download_name = re.sub(r"[^A-Za-z0-9]+", "-", hansard_name).strip("-") or "bill"
     st.download_button(
         "Download Bill information",
@@ -569,8 +618,6 @@ elif follows_madeleine:
         mime="text/markdown",
         key="download_bill_information",
     )
-else:
-    st.info("Confirm that you follow the Facebook page to enable the download.")
 
 st.divider()
 st.link_button("Tasmanian Parliament website", PARLIAMENT_URL)

@@ -17,7 +17,7 @@ This policy explains what information the app handles, why, who it is shared wit
 
 **Sign-up details (earlier versions only)**
 
-An earlier version of the app invited people to sign up for updates and announcements. For people who did, we hold the name, mobile number, the time they gave permission, and a shortened code identifying the browser used. The sign-up form is no longer offered. We use these details only to send the updates you agreed to receive.
+To unlock Bill information downloads, the app asks for a name and mobile number. For people who provide them, we hold the name, mobile number, the time they gave permission, and a shortened code identifying the browser used. The details are stored by Democracydot and are not verified. We use these details only to send the updates you agreed to receive.
 
 **Information from official sources**
 
