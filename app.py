@@ -7,6 +7,7 @@ st.set_page_config(
     page_title="Democracydot",
     page_icon="🏛️",
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 apply_design_system()
 

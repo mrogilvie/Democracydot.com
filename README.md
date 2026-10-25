@@ -23,6 +23,8 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Added a link to Madeleine Ogilvie MP's Facebook page on the landing page, and gated the Democracy Index download behind a self-declared follow of that page (the declaration is not verified by Facebook)
 - Added an on-screen view of the compared document, and search that starts when a Bill name is entered
 - Added a Privacy Policy page (`/privacy`) and Terms and Conditions page (`/terms`), with a browse-to-accept notice on every page
+- Merged the Guided Bill Analysis into the Bill Information page (checkbox list of analyses and a pink **Compile a Report** button), made the Proposed amendment generate when Enter is pressed, and updated the Facebook, LinkedIn and footer links on the landing page
+- Set the left-hand navigation sidebar to open expanded so each page opens with a single click
 
 ## Vision
 
@@ -47,7 +49,7 @@ The project is currently grounded in a lightweight Python stack designed for exp
 
 ## Current implementation status
 
-The Streamlit application opens on a public landing page, and all three Bill features are available without signing in or registering. Navigation is configured in `app.py`, with each page implemented as a dedicated Streamlit page: the home page, Bill Information, Democratic Engagement, and Democracy Index.
+The Streamlit application opens on a public landing page, and all three Bill features are available without signing in or registering. Navigation is configured in `app.py` (the left-hand sidebar starts expanded, so each page opens with one click), with each page implemented as a dedicated Streamlit page: the home page, Bill Information, Democratic Engagement, and Democracy Index.
 
 1. **Bill Information** — enter a Bill title and press Enter to retrieve the Bill from Tasmanian Parliament records and draft any empty summary, background, and policy context fields (existing text is kept, and the draft should be reviewed); or enter them yourself. The **Guided Bill Analysis** section on this page can run five focused analyses (summary, key changes, affected groups, risks and concerns, and a plain-English explanation) from the official Bill or an uploaded PDF/text file, compile them with an AI-written conclusion, and download the report as Markdown. Essential reading shows the Bill's full official title and number, with Hansard debate links and links to any House of Assembly or Legislative Council e-petitions on the Bill or its subject matter added automatically, you can create a Hansard AI summary of the debates (House of Assembly, then Legislative Council, then a conclusion), and download the Bill information as a Markdown file once you confirm you follow Madeleine Ogilvie MP on Facebook (self-confirmed, not verified).
 2. **Democratic Engagement** — the Bill entered on page 1 is carried over and searched automatically (or type another Bill name and press Enter to search Tasmanian Parliament records). The matching Bill as introduced PDF, second reading speech, fact sheet, and clause notes are retrieved and displayed. The page reports the official House of Assembly, Legislative Council, and Royal Assent status, and links to the Final Act when available. Users can ask AI-grounded questions, request an AI-drafted proposed amendment using the available Bill or Act text, and submit anonymous feedback.
