@@ -650,7 +650,9 @@ with download_area:
         "I follow Madeleine Ogilvie MP on Facebook",
         key="bill_info_follows_madeleine",
     )
-    if not st.session_state.get("signup_saved"):
+    if st.session_state.get("signup_saved"):
+        st.success("Your name and mobile number are saved on this device.")
+    else:
         with st.form("download_signup_form"):
             signup_name = st.text_input("Name")
             signup_mobile = st.text_input("Mobile number")
