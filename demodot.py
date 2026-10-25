@@ -36,6 +36,14 @@ PARLIAMENT_SEARCH_URL = f"{PARLIAMENT_URL.rstrip('/')}/search-results"
 LEGISLATION_URL = "https://www.legislation.tas.gov.au"
 LEGISLATION_HOST = urlparse(LEGISLATION_URL).hostname
 LEGISLATION_SEARCH_URL = f"{LEGISLATION_URL}/projectdata"
+BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-AU,en;q=0.9",
+}
 HANSARD_SEARCH_URL = "https://search.parliament.tas.gov.au/search/search/"
 HANSARD_CHAMBERS = ("House of Assembly", "Legislative Council")
 
@@ -157,7 +165,7 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
         f"{PARLIAMENT_SEARCH_URL}?"
         f"{urlencode({'queries_all_query': bill_name})}"
     )
-    request = Request(search_url, headers={"User-Agent": "Democracydot/1.0"})
+    request = Request(search_url, headers={**BROWSER_HEADERS})
     with urlopen(request, timeout=15) as response:
         final_url = urlparse(response.geturl())
         if final_url.scheme != "https" or final_url.hostname != PARLIAMENT_HOST:
@@ -216,7 +224,7 @@ def get_parliament_bill_status(bill_page_url: str) -> BillStatus:
     ):
         raise ValueError("The Bill record is not on the official Parliament website.")
 
-    request = Request(bill_page_url, headers={"User-Agent": "Democracydot/1.0"})
+    request = Request(bill_page_url, headers={**BROWSER_HEADERS})
     with urlopen(request, timeout=15) as response:
         final_url = urlparse(response.geturl())
         if final_url.scheme != "https" or final_url.hostname != PARLIAMENT_HOST:
@@ -305,7 +313,7 @@ def find_act_pdf_url(act_title: str) -> str:
     request = Request(
         request_url,
         headers={
-            "User-Agent": "Democracydot/1.0",
+            **BROWSER_HEADERS,
             "X-Requested-With": "XMLHttpRequest",
         },
     )
@@ -360,7 +368,7 @@ def find_parliament_bill_document_urls(
     ):
         raise ValueError("The Bill record is not on the official Parliament website.")
 
-    request = Request(bill_page_url, headers={"User-Agent": "Democracydot/1.0"})
+    request = Request(bill_page_url, headers={**BROWSER_HEADERS})
     with urlopen(request, timeout=15) as response:
         final_url = urlparse(response.geturl())
         if final_url.scheme != "https" or final_url.hostname != PARLIAMENT_HOST:
@@ -439,7 +447,7 @@ def fetch_official_pdf(document_url: str, allowed_host: str) -> bytes:
     if parsed_url.scheme != "https" or parsed_url.hostname != allowed_host:
         raise ValueError("The PDF is not hosted on the expected official website.")
 
-    request = Request(document_url, headers={"User-Agent": "Democracydot/1.0"})
+    request = Request(document_url, headers={**BROWSER_HEADERS})
     with urlopen(request, timeout=15) as response:
         final_url = urlparse(response.geturl())
         if final_url.scheme != "https" or final_url.hostname != allowed_host:
@@ -519,7 +527,7 @@ def find_hansard_debate_links(bill_name: str) -> list[tuple[str, str]]:
         )
         url = f"{HANSARD_SEARCH_URL}?{query}"
         try:
-            request = Request(url, headers={"User-Agent": "Democracydot/1.0"})
+            request = Request(url, headers={**BROWSER_HEADERS})
             with urlopen(request, timeout=15) as response:
                 if urlparse(response.geturl()).hostname != urlparse(HANSARD_SEARCH_URL).hostname:
                     continue
@@ -579,7 +587,7 @@ def fetch_hansard_bill_debate(bill_name: str, chamber: str) -> list[tuple[str, s
         }
     )
     request = Request(
-        f"{HANSARD_SEARCH_URL}?{query}", headers={"User-Agent": "Democracydot/1.0"}
+        f"{HANSARD_SEARCH_URL}?{query}", headers={**BROWSER_HEADERS}
     )
     with urlopen(request, timeout=20) as response:
         if urlparse(response.geturl()).hostname != search_host:
@@ -596,7 +604,7 @@ def fetch_hansard_bill_debate(bill_name: str, chamber: str) -> list[tuple[str, s
     results = []
     for path in document_paths[:HANSARD_MAX_DOCUMENTS]:
         document_request = Request(
-            f"https://{search_host}{path}", headers={"User-Agent": "Democracydot/1.0"}
+            f"https://{search_host}{path}", headers={**BROWSER_HEADERS}
         )
         with urlopen(document_request, timeout=60) as response:
             if urlparse(response.geturl()).hostname != search_host:
@@ -660,7 +668,7 @@ def bill_subject_keywords(bill_name: str) -> tuple[str, list[str]]:
 
 
 def _fetch_petition_page(url: str, allowed_host: str) -> str:
-    request = Request(url, headers={"User-Agent": "Democracydot/1.0"})
+    request = Request(url, headers={**BROWSER_HEADERS})
     with urlopen(request, timeout=8) as response:
         if urlparse(response.geturl()).hostname != allowed_host:
             raise ValueError("Unexpected redirect from the e-petitions site.")
