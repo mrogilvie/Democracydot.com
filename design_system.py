@@ -156,6 +156,7 @@ def apply_design_system() -> None:
             box-shadow: 0 0 24px rgba(255, 56, 209, .6);
         }
         .st-key-run_guided_analysis button,
+        .st-key-run_full_analysis button,
         .st-key-signup_continue button,
         .st-key-download_democracy_index button,
         .st-key-download_marked_up_comparison button,
@@ -172,6 +173,7 @@ def apply_design_system() -> None:
             opacity: .55;
         }
         .st-key-run_guided_analysis button p,
+        .st-key-run_full_analysis button p,
         .st-key-signup_continue button p,
         .st-key-download_democracy_index button p,
         .st-key-download_marked_up_comparison button p,
@@ -183,6 +185,7 @@ def apply_design_system() -> None:
             color: #fff !important;
         }
         .st-key-run_guided_analysis button:hover,
+        .st-key-run_full_analysis button:hover,
         .st-key-signup_continue button:hover,
         .st-key-download_democracy_index button:hover,
         .st-key-download_marked_up_comparison button:hover,
