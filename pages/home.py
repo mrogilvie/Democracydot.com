@@ -32,12 +32,19 @@ st.markdown(
       <p>
         The Democracy Index estimates how closely the Act reflects the Bill and
         helps you explore how the Bill changed during the democratic process.
-        To access downloads in Democracydot, I ask you to follow my Facebook
-        page to assist with ongoing communication and discussion.
+      </p>
+      <p>
+        To access downloads and functions in Democracydot please join my
+        facebook page.
       </p>
     </section>
     """,
     unsafe_allow_html=True,
+)
+st.link_button(
+    "Follow Madeleine Ogilvie MP on Facebook",
+    FACEBOOK_PAGE_URL,
+    key="home_facebook_link",
 )
 
 st.markdown(
@@ -122,11 +129,6 @@ st.markdown(
     </p>
     """,
     unsafe_allow_html=True,
-)
-st.link_button(
-    "Follow Madeleine Ogilvie MP on Facebook",
-    FACEBOOK_PAGE_URL,
-    key="home_facebook_link",
 )
 st.markdown(
     """
