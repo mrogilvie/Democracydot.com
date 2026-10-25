@@ -220,6 +220,10 @@ class BillStatus(TypedDict):
 def _use_snapshot_notice() -> None:
     """Show that saved Parliament records are in use; never let it break a lookup."""
     try:
+        last_shown = st.session_state.get("_snapshot_notice_at", 0.0)
+        if time.monotonic() - last_shown < 5:
+            return
+        st.session_state["_snapshot_notice_at"] = time.monotonic()
         st.warning(
             "The Parliament website could not be reached live, so saved "
             f"Parliament records from {bill_snapshot.generated_date()} are being "
