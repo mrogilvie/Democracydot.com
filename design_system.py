@@ -165,6 +165,17 @@ def apply_design_system() -> None:
             border-color: #e01fb9 !important;
             box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
         }
+        .st-key-home_facebook_link a {
+            background: var(--pink) !important;
+            border-color: var(--pink) !important;
+            color: #fff !important;
+            text-decoration: none !important;
+        }
+        .st-key-home_facebook_link a:hover {
+            background: #e01fb9 !important;
+            border-color: #e01fb9 !important;
+            box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
+        }
         .stPageLink a {
             background: #dbeafe !important;
             border: 1px solid #93c5fd !important;

@@ -1,6 +1,6 @@
 import streamlit as st
 
-from follow_dialog import show_follow_dialog
+from follow_dialog import FACEBOOK_PAGE_URL
 
 
 st.markdown(
@@ -123,8 +123,11 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-if st.button("Follow Madeleine Ogilvie MP on Facebook", key="home_follow_dialog"):
-    show_follow_dialog()
+st.link_button(
+    "Follow Madeleine Ogilvie MP on Facebook",
+    FACEBOOK_PAGE_URL,
+    key="home_facebook_link",
+)
 st.markdown(
     """
     <footer class="dd-footer">
