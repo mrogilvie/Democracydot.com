@@ -157,6 +157,7 @@ def apply_design_system() -> None:
         }
         .st-key-run_guided_analysis button,
         .st-key-signup_continue button,
+        .st-key-download_documents button,
         .st-key-download_bill_information button,
         .st-key-download_guided_analysis button,
         .st-key-download_hansard_summary button,
@@ -165,8 +166,12 @@ def apply_design_system() -> None:
             border-color: var(--pink) !important;
             color: #fff !important;
         }
+        .st-key-download_documents button:disabled {
+            opacity: .55;
+        }
         .st-key-run_guided_analysis button p,
         .st-key-signup_continue button p,
+        .st-key-download_documents button p,
         .st-key-download_bill_information button p,
         .st-key-download_guided_analysis button p,
         .st-key-download_hansard_summary button p,
@@ -175,6 +180,7 @@ def apply_design_system() -> None:
         }
         .st-key-run_guided_analysis button:hover,
         .st-key-signup_continue button:hover,
+        .st-key-download_documents button:hover,
         .st-key-download_bill_information button:hover,
         .st-key-download_guided_analysis button:hover,
         .st-key-download_hansard_summary button:hover,

@@ -1,4 +1,7 @@
+import io
+import re
 import sqlite3
+import zipfile
 from typing import TypedDict
 from urllib.error import URLError
 from urllib.parse import unquote, urlparse
@@ -297,6 +300,54 @@ if (
             st.info("No matching Final Act PDF is available.")
 
 st.session_state["parliament_documents"] = []
+
+
+def build_documents_zip() -> bytes:
+    """Bundle the official PDFs shown on this page into one ZIP file."""
+    files: list[tuple[str, bytes]] = []
+    if isinstance(bill_pdf_bytes, bytes):
+        files.append(("Bill as introduced", bill_pdf_bytes))
+    documents = st.session_state.get("official_parliament_documents", [])
+    if isinstance(documents, list):
+        for document in documents:
+            if (
+                isinstance(document, dict)
+                and document.get("category") != "Bill as introduced"
+                and isinstance(document.get("pdf"), bytes)
+            ):
+                files.append((str(document.get("category", "Bill document")), document["pdf"]))
+    final_act = st.session_state.get("interaction_final_act_pdf")
+    if isinstance(final_act, bytes):
+        files.append(("Final Act as passed", final_act))
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        used: set[str] = set()
+        for label, data in files:
+            name = re.sub(r"[^A-Za-z0-9]+", "-", label).strip("-") or "document"
+            candidate, count = name, 1
+            while candidate in used:
+                count += 1
+                candidate = f"{name}-{count}"
+            used.add(candidate)
+            archive.writestr(f"{candidate}.pdf", data)
+    return buffer.getvalue()
+
+
+documents_available = isinstance(bill_pdf_bytes, bytes)
+documents_unlocked = bool(st.session_state.get("signup_saved"))
+if documents_available and documents_unlocked:
+    zip_slug = re.sub(
+        r"[^A-Za-z0-9]+", "-", bill_record_title or "bill"
+    ).strip("-") or "bill"
+    st.download_button(
+        "Download documents",
+        data=build_documents_zip(),
+        file_name=f"{zip_slug}-documents.zip",
+        mime="application/zip",
+        key="download_documents",
+    )
+elif documents_available:
+    st.button("Download documents", key="download_documents", disabled=True)
 
 st.subheader("Billbow")
 st.caption(

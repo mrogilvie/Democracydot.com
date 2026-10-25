@@ -1,6 +1,7 @@
 import streamlit as st
 
 from design_system import apply_design_system
+from follow_dialog import restore_signup_from_cookie
 
 
 st.set_page_config(
@@ -10,6 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 apply_design_system()
+restore_signup_from_cookie()
 
 with st.sidebar:
     st.header("OpenAI credentials")
