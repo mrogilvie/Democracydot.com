@@ -462,6 +462,7 @@ def request_parliament_search() -> None:
 
 if sync_session_bill("parliament_bill_search_input", "page3_synced_bill"):
     st.session_state["parliament_search_requested"] = True
+    st.session_state["auto_create_democracy_index"] = True
 
 bill_name = st.text_input(
     "Bill name",
@@ -654,6 +655,9 @@ compare_documents = st.button(
     "Create Democracy Index",
     key="create_democracy_index",
 )
+auto_create_index = st.session_state.pop("auto_create_democracy_index", False)
+if auto_create_index and st.session_state.get("parliament_bill_search_name"):
+    compare_documents = True
 st.caption("Please do not close the browser while the request is processing.")
 timer_placeholder = st.empty()
 

@@ -155,21 +155,25 @@ def apply_design_system() -> None:
             border-color: #ff72df !important;
             box-shadow: 0 0 24px rgba(255, 56, 209, .6);
         }
-        .st-key-run_guided_analysis button,
+        .st-key-signup_continue button,
         .st-key-download_bill_information button,
+        .st-key-download_guided_analysis button,
         .st-key-download_hansard_summary button,
         .st-key-download_public_discussion button {
             background: var(--pink) !important;
             border-color: var(--pink) !important;
             color: #fff !important;
         }
+        .st-key-signup_continue button p,
         .st-key-download_bill_information button p,
+        .st-key-download_guided_analysis button p,
         .st-key-download_hansard_summary button p,
         .st-key-download_public_discussion button p {
             color: #fff !important;
         }
-        .st-key-run_guided_analysis button:hover,
+        .st-key-signup_continue button:hover,
         .st-key-download_bill_information button:hover,
+        .st-key-download_guided_analysis button:hover,
         .st-key-download_hansard_summary button:hover,
         .st-key-download_public_discussion button:hover {
             background: #e01fb9 !important;

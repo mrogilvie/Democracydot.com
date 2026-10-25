@@ -530,7 +530,7 @@ if result:
     )
     discussion_slug = re.sub(r"[^A-Za-z0-9]+", "-", result[0]).strip("-") or "bill"
     st.download_button(
-        "Download",
+        "Download summary",
         data=create_guided_report_html(
             f"# Public sentiment: {result[0]}\n\n{result[1]}\n\n"
             "_AI-generated from web search results. Coverage of social media is "
@@ -553,8 +553,22 @@ if result:
 st.divider()
 
 
-def build_bill_information_markdown() -> str:
-    lines = [f"# {bill_record[0] if bill_record else entered_bill}", ""]
+def nest_headings(text: str) -> str:
+    """Keep embedded report headings below the full report's section headings."""
+    lines = []
+    for line in text.strip().splitlines():
+        match = re.match(r"(#{1,6})\s+(.*)", line)
+        if match:
+            line = f"{'#' * max(len(match.group(1)), 3)} {match.group(2)}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def build_full_report_markdown() -> str:
+    title = bill_record[0] if bill_record else entered_bill
+    lines = [f"# Full report: {title}", ""]
+
+    information = []
     for heading, key in (
         ("Bill summary", "bill_summary"),
         ("Background information", "bill_background"),
@@ -562,11 +576,23 @@ def build_bill_information_markdown() -> str:
     ):
         text = st.session_state.get(key, "").strip()
         if text:
-            lines += [f"## {heading}", "", text, ""]
+            information += [f"### {heading}", "", text, ""]
+    if information:
+        lines += ["## Bill information", ""] + information
     if essential_links:
         lines += ["## Essential reading", ""]
         lines += [f"- [{link['label']}]({link['url']})" for link in essential_links]
         lines.append("")
+
+    analysis = st.session_state.get("guided_report")
+    if analysis:
+        body = "\n".join(
+            line
+            for line in analysis.splitlines()
+            if not re.match(r"#\s", line)
+        )
+        lines += ["## Guided Bill Analysis", "", nest_headings(body), ""]
+
     for heading, key, note in (
         (
             "Hansard AI summary",
@@ -574,18 +600,25 @@ def build_bill_information_markdown() -> str:
             "AI-generated from Parliament of Tasmania Hansard; may be incomplete.",
         ),
         (
-            "The public discussion",
+            "Public discussion",
             "public_discussion_result",
             "AI-generated from web search results; not a poll.",
         ),
     ):
         saved_result = st.session_state.get(key)
         if saved_result and saved_result[0] in (entered_bill, hansard_name):
-            lines += [f"## {heading}", "", f"_{note}_", "", saved_result[1], ""]
+            lines += [
+                f"## {heading}",
+                "",
+                f"_{note}_",
+                "",
+                nest_headings(saved_result[1]),
+                "",
+            ]
     lines += [
         "---",
-        "Prepared with Democracydot. Information only, not legal advice. "
-        "Check the official Parliament of Tasmania records.",
+        "_Prepared with Democracydot. Information only, not legal advice. "
+        "Check the official Parliament of Tasmania records._",
     ]
     return "\n".join(lines)
 
@@ -593,7 +626,11 @@ def build_bill_information_markdown() -> str:
 DEVICE_COOKIE = "dd_device"
 returning_signup = None
 device_cookie = st.context.cookies.get(DEVICE_COOKIE)
-if device_cookie and not st.session_state.get("signup_saved"):
+if (
+    isinstance(device_cookie, str)
+    and device_cookie
+    and not st.session_state.get("signup_saved")
+):
     try:
         returning_signup = get_signup_for_device(device_cookie)
     except (OSError, sqlite3.Error):
@@ -613,7 +650,7 @@ with download_area:
         "I follow Madeleine Ogilvie MP on Facebook",
         key="bill_info_follows_madeleine",
     )
-    if follows_madeleine and not st.session_state.get("signup_saved"):
+    if not st.session_state.get("signup_saved"):
         with st.form("download_signup_form"):
             signup_name = st.text_input("Name")
             signup_mobile = st.text_input("Mobile number")
@@ -622,7 +659,7 @@ with download_area:
                 "Democracydot so you can be contacted about updates and "
                 "announcements."
             )
-            continue_clicked = st.form_submit_button("Continue")
+            continue_clicked = st.form_submit_button("Continue", key="signup_continue")
         if continue_clicked:
             digits = re.sub(r"\D", "", signup_mobile)
             if not signup_name.strip():
@@ -656,11 +693,14 @@ with download_area:
 
 if entered_bill and follows_madeleine and st.session_state.get("signup_saved"):
     download_name = re.sub(r"[^A-Za-z0-9]+", "-", hansard_name).strip("-") or "bill"
+    full_report_title = bill_record[0] if bill_record else entered_bill
     st.download_button(
-        "Download Bill information",
-        data=build_bill_information_markdown(),
-        file_name=f"{download_name}-information.md",
-        mime="text/markdown",
+        "Download full report",
+        data=create_guided_report_html(
+            build_full_report_markdown(), full_report_title, "Full report"
+        ),
+        file_name=f"{download_name}-full-report.html",
+        mime="text/html",
         key="download_bill_information",
     )
 
