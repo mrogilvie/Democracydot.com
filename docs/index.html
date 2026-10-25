@@ -8,6 +8,12 @@
       content="Understand Tasmanian Bills, follow the parliamentary process, and explore how legislation changes with Democracydot."
     >
     <meta name="theme-color" content="#f7f9ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Democracydot">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <title>Democracydot — Understand the laws that shape your life</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +33,9 @@
       <nav class="main-nav" aria-label="Main navigation">
         <a href="#how-it-works">How it works</a>
         <a href="#why-democracydot">Why Democracydot</a>
+        <button class="button button-small button-outline" id="install-app" type="button">
+          Install app <span aria-hidden="true">↓</span>
+        </button>
         <a class="button button-small button-primary" href="https://democracydotcom.streamlit.app/">
           Open the app <span aria-hidden="true">↗</span>
         </a>
@@ -161,6 +170,20 @@
       </section>
     </main>
 
+    <dialog class="install-dialog" id="install-dialog" aria-labelledby="install-title">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="Close installation instructions">×</button>
+      </form>
+      <div class="dialog-icon" aria-hidden="true">✳</div>
+      <p class="eyebrow">Take Democracydot with you</p>
+      <h2 id="install-title">Install Democracydot</h2>
+      <p class="dialog-intro">Add Democracydot to your home screen for a handy, app-like way to return to the service.</p>
+      <div class="install-instructions" id="install-instructions"></div>
+      <a class="button button-primary dialog-open-app" href="https://democracydotcom.streamlit.app/">
+        Open the app <span aria-hidden="true">↗</span>
+      </a>
+    </dialog>
+
     <footer class="site-footer">
       <a class="brand footer-brand" href="#main" aria-label="Democracydot home">
         <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
@@ -175,5 +198,6 @@
       </div>
       <small>© 2026 Democracydot</small>
     </footer>
+    <script src="./install.js" defer></script>
   </body>
 </html>

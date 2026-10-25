@@ -90,7 +90,31 @@ a { color: inherit; }
 .button:focus-visible, a:focus-visible { outline: 3px solid #e52cbb; outline-offset: 3px; }
 .button-primary { background: var(--pink); color: var(--navy); }
 .button-primary:hover { background: #ff61dc; }
+.button-outline { border-color: #dbe4f0; background: #fff; color: var(--navy); cursor: pointer; font-family: inherit; }
+.button-outline:hover { border-color: #ef9cdd; background: #fff8fd; }
 .button-small { min-height: 42px; padding: 0 17px; font-size: .84rem; }
+.install-dialog {
+  position: relative;
+  width: min(440px, calc(100% - 32px));
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 24px 80px #102a4333;
+}
+.install-dialog::backdrop { background: #102a4380; backdrop-filter: blur(3px); }
+.install-dialog form { position: absolute; top: 12px; right: 14px; }
+.dialog-close { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #f1f5fb; color: var(--navy); font-size: 1.5rem; cursor: pointer; }
+.dialog-icon { display: grid; width: 44px; height: 44px; margin-bottom: 20px; place-items: center; border-radius: 12px; background: #ffecfa; color: #d42db1; font-size: 1.4rem; }
+.install-dialog .eyebrow { margin-bottom: 8px; font-size: .64rem; }
+.install-dialog h2 { margin-bottom: 8px; font-size: 1.65rem; }
+.dialog-intro { margin-bottom: 18px; color: var(--muted); font-size: .88rem; line-height: 1.7; }
+.install-instructions { margin-bottom: 21px; padding: 14px 16px; border-radius: 9px; background: #f3f6fc; color: #526981; font-size: .82rem; line-height: 1.7; }
+.install-instructions p { margin: 0; }
+.install-instructions p + p { margin-top: 8px; }
+.install-instructions b { color: var(--navy); }
+.dialog-open-app { width: 100%; }
 .hero {
   position: relative;
   width: min(1160px, calc(100% - 48px));
@@ -292,6 +316,8 @@ h1 span, .section-heading h2 span, .feature-copy h2 span { color: #4778d0; }
   .site-header { width: min(100% - 32px, 500px); height: 72px; }
   .main-nav { gap: 0; }
   .main-nav > a:not(.button) { display: none; }
+  .main-nav { gap: 8px; }
+  .main-nav .button { padding: 0 11px; font-size: .74rem; }
   .hero { width: calc(100% - 24px); min-height: auto; margin-top: 10px; grid-template-columns: 1fr; }
   .hero-copy { padding: 47px 25px 0; }
   h1 { max-width: 500px; font-size: clamp(2.65rem, 12vw, 3.65rem); }
