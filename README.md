@@ -23,7 +23,7 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Added a link to Madeleine Ogilvie MP's Facebook page on the landing page, and gated the Democracy Index download behind a self-declared follow of that page (the declaration is not verified by Facebook)
 - Added an on-screen view of the compared document, and search that starts when a Bill name is entered
 - Added a Privacy Policy page (`/privacy`) and Terms and Conditions page (`/terms`), with a browse-to-accept notice on every page
-- Merged the Guided Bill Analysis into the Bill Information page (checkbox list of analyses and a **Compile a Report** button), made the Proposed amendment generate when Enter is pressed, and updated the Facebook, LinkedIn and footer links on the landing page
+- Merged the Guided Bill Analysis into the Bill Information page (checkbox list of analyses and a pink **Compile a Report** button), made the Proposed amendment generate when Enter is pressed, and updated the Facebook, LinkedIn and footer links on the landing page
 - Removed the OpenAI data-sharing and Essential reading captions from the top of Bill Information
 - On the Democracy Index page, a Bill carried over automatically from page 1 now also runs **Create Democracy Index** as soon as the Parliament search finds it
 - Changed "Download Bill information" to a pink "Download full report": a formatted HTML document combining the Bill information, essential reading, guided analysis, Hansard summary and public discussion
