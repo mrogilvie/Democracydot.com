@@ -474,6 +474,7 @@ if search_bill:
     st.session_state.pop("parliament_bill_pdf", None)
     st.session_state.pop("parliament_act_pdf_url", None)
     st.session_state.pop("parliament_act_pdf", None)
+    st.session_state.pop("parliament_act_notice", None)
     st.session_state.pop("parliament_bill_search_name", None)
     st.session_state.pop("marked_up_html", None)
     st.session_state.pop("marked_up_filename", None)
@@ -512,7 +513,11 @@ if search_bill:
                 json.JSONDecodeError,
                 ValueError,
             ) as error:
-                st.warning(f"Could not retrieve the Act as passed PDF: {error}")
+                st.session_state["parliament_act_notice"] = (
+                    "No Act as passed was found. If this Bill has not yet "
+                    "passed both Houses and received Royal Assent, there is no "
+                    f"Act to show yet. ({error})"
+                )
             else:
                 st.session_state["parliament_act_pdf_url"] = act_pdf_url
                 st.session_state["parliament_act_pdf"] = act_pdf
@@ -557,7 +562,8 @@ with st.container(border=True):
         )
     else:
         st.info(
-            "Search Parliament records above to find and display the Act as passed PDF."
+            st.session_state.get("parliament_act_notice")
+            or "Search Parliament records above to find and display the Act as passed PDF."
         )
 
 act_pdf = st.session_state.get("parliament_act_pdf")
