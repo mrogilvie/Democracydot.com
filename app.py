@@ -31,12 +31,6 @@ pages = {
     "Democracydot": [
         home_page,
         st.Page(
-            "pages/guided_analysis.py",
-            title="Guided Bill Analysis",
-            icon=":material/fact_check:",
-            url_path="guided-analysis",
-        ),
-        st.Page(
             "pages/bill_interaction.py",
             title="Bill Information",
             icon=":material/article:",

@@ -26,6 +26,92 @@ from follow_dialog import show_follow_dialog
 
 MAX_AUTOCOMPLETE_CHARS = 60000
 AUTOCOMPLETE_FIELDS = ("summary", "background", "policy")
+MAX_GUIDED_ANALYSIS_CHARS = 60000
+GUIDED_ANALYSES = {
+    "Summary": "Summarise what the Bill does in plain language.",
+    "Key changes": "List the main changes the Bill makes to existing law.",
+    "Affected groups": "Identify who is affected by the Bill and how.",
+    "Risks and concerns": (
+        "Identify legal, practical or rights-related risks and ambiguities "
+        "in the Bill text."
+    ),
+    "Plain-English explanation": (
+        "Explain the Bill to a high-school student in a short paragraph."
+    ),
+}
+GUIDED_ANALYSIS_SYSTEM = (
+    "You assist with legal research. Use only the supplied Bill text. Be "
+    "nonpartisan, concise and do not give legal advice. If the text does not "
+    "support something, say so."
+)
+
+
+def ask_guided_analysis(client, task: str, text: str, max_tokens: int = 700) -> str:
+    response = client.responses.create(
+        model=MODEL,
+        instructions=f"{GUIDED_ANALYSIS_SYSTEM}\n\nTask: {task}",
+        input=text,
+        max_output_tokens=max_tokens,
+    )
+    return response.output_text.strip()
+
+
+def create_guided_analysis(
+    bill_name: str, upload, selected_analyses: list[str]
+) -> None:
+    client = get_openai_client()
+    if not client:
+        return
+
+    try:
+        with st.spinner("Step 1: loading the Bill..."):
+            if upload is not None:
+                title = upload.name
+                bill_text = extract_uploaded_text(upload.name, upload.getvalue())
+            elif bill_name:
+                bill_page, title = find_parliament_bill_page(bill_name)
+                pdf_url = find_parliament_bill_pdf_url(bill_page)
+                pdf = fetch_official_pdf(pdf_url, PARLIAMENT_HOST)
+                bill_text = extract_uploaded_text("bill.pdf", pdf)
+            else:
+                st.warning("Enter a Bill name or upload a file.")
+                return
+    except (HTTPError, URLError, TimeoutError, UnicodeDecodeError, ValueError, OSError) as error:
+        st.error(f"Could not load the Bill: {error}")
+        return
+
+    bill_text = bill_text[:MAX_GUIDED_ANALYSIS_CHARS]
+    results: dict[str, str] = {}
+    try:
+        progress = st.progress(0.0, text="Step 2: running AI analyses...")
+        for index, (name, task) in enumerate(GUIDED_ANALYSES.items(), start=1):
+            results[name] = ask_guided_analysis(
+                client, task, f"BILL: {title}\n\n{bill_text}"
+            )
+            progress.progress(index / len(GUIDED_ANALYSES), text=f"Completed: {name}")
+
+        body = "\n\n".join(
+            f"## {name}\n{results[name]}"
+            for name in selected_analyses
+            if name in results
+        )
+        with st.spinner("Step 3: compiling the report..."):
+            conclusion = ask_guided_analysis(
+                client,
+                "Write a two-sentence overall conclusion for a report based on "
+                "these analyses.",
+                body or "\n\n".join(results.values()),
+                max_tokens=200,
+            )
+    except OpenAIError as error:
+        report_openai_error(error)
+        return
+
+    st.session_state["guided_report"] = (
+        f"# Bill analysis: {title}\n\n{body}\n\n## Overall conclusion\n"
+        f"{conclusion}\n\n_AI-generated; not legal advice._\n"
+    )
+    st.session_state["guided_report_title"] = title
 
 
 def autocomplete_bill_information(bill_name: str) -> dict[str, str] | None:
@@ -162,6 +248,51 @@ st.text_area("Policy context", key="bill_policy_input", height=160)
 for stored_key, widget_key in FIELD_KEYS.items():
     st.session_state[stored_key] = st.session_state[widget_key].strip()
 st.session_state["bill_title"] = st.session_state.get("bill_title_input", "").strip()
+
+with st.expander("Guided Bill Analysis"):
+    st.write(
+        "Run five focused analyses and compile a report with an overall "
+        "conclusion. Use the Bill name above to load the official Bill, or "
+        "upload a PDF or text file instead."
+    )
+    st.caption(
+        "Bill text is sent to OpenAI when you run the analysis. This is not legal advice."
+    )
+    guided_upload = st.file_uploader(
+        "Or upload the Bill (PDF or text)",
+        type=["pdf", "txt"],
+        key="guided_bill_upload",
+    )
+    selected_guided_analyses = st.multiselect(
+        "Analyses to include in the report",
+        list(GUIDED_ANALYSES),
+        default=list(GUIDED_ANALYSES),
+        help="All five analyses are always run; unticked ones are left out of the report.",
+        key="guided_analyses_selected",
+    )
+    if st.button("Run guided analysis", type="primary", key="run_guided_analysis"):
+        create_guided_analysis(
+            st.session_state.get("bill_title_input", "").strip(),
+            guided_upload,
+            selected_guided_analyses,
+        )
+
+    guided_report = st.session_state.get("guided_report")
+    if guided_report:
+        st.subheader(f"Report: {st.session_state.get('guided_report_title', 'Bill')}")
+        st.markdown(guided_report)
+        report_slug = re.sub(
+            r"[^A-Za-z0-9]+",
+            "-",
+            st.session_state.get("guided_report_title", "bill"),
+        ).strip("-") or "bill"
+        st.download_button(
+            "Download analysis report (Markdown)",
+            guided_report,
+            file_name=f"{report_slug}-analysis.md",
+            mime="text/markdown",
+            key="download_guided_analysis",
+        )
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def lookup_full_bill_title(bill_name: str) -> tuple[str, str] | None:
