@@ -56,26 +56,24 @@ def ask_guided_analysis(client, task: str, text: str, max_tokens: int = 700) -> 
     return response.output_text.strip()
 
 
-def create_guided_analysis(
-    bill_name: str, upload, selected_analyses: list[str]
-) -> None:
+def create_guided_analysis(bill_name: str, selected_analyses: list[str]) -> None:
+    if not selected_analyses:
+        st.warning("Select at least one analysis to continue.")
+        return
+
     client = get_openai_client()
     if not client:
         return
 
     try:
         with st.spinner("Step 1: loading the Bill..."):
-            if upload is not None:
-                title = upload.name
-                bill_text = extract_uploaded_text(upload.name, upload.getvalue())
-            elif bill_name:
-                bill_page, title = find_parliament_bill_page(bill_name)
-                pdf_url = find_parliament_bill_pdf_url(bill_page)
-                pdf = fetch_official_pdf(pdf_url, PARLIAMENT_HOST)
-                bill_text = extract_uploaded_text("bill.pdf", pdf)
-            else:
-                st.warning("Enter a Bill name or upload a file.")
+            if not bill_name:
+                st.warning("Enter a Bill name or number above first.")
                 return
+            bill_page, title = find_parliament_bill_page(bill_name)
+            pdf_url = find_parliament_bill_pdf_url(bill_page)
+            pdf = fetch_official_pdf(pdf_url, PARLIAMENT_HOST)
+            bill_text = extract_uploaded_text("bill.pdf", pdf)
     except (HTTPError, URLError, TimeoutError, UnicodeDecodeError, ValueError, OSError) as error:
         st.error(f"Could not load the Bill: {error}")
         return
@@ -83,17 +81,20 @@ def create_guided_analysis(
     bill_text = bill_text[:MAX_GUIDED_ANALYSIS_CHARS]
     results: dict[str, str] = {}
     try:
-        progress = st.progress(0.0, text="Step 2: running AI analyses...")
-        for index, (name, task) in enumerate(GUIDED_ANALYSES.items(), start=1):
+        progress = st.progress(0.0, text="Running selected analyses...")
+        selected_tasks = [
+            (name, GUIDED_ANALYSES[name])
+            for name in selected_analyses
+            if name in GUIDED_ANALYSES
+        ]
+        for index, (name, task) in enumerate(selected_tasks, start=1):
             results[name] = ask_guided_analysis(
                 client, task, f"BILL: {title}\n\n{bill_text}"
             )
-            progress.progress(index / len(GUIDED_ANALYSES), text=f"Completed: {name}")
+            progress.progress(index / len(selected_tasks), text=f"Completed: {name}")
 
         body = "\n\n".join(
-            f"## {name}\n{results[name]}"
-            for name in selected_analyses
-            if name in results
+            f"## {name}\n{results[name]}" for name, _ in selected_tasks
         )
         with st.spinner("Step 3: compiling the report..."):
             conclusion = ask_guided_analysis(
@@ -250,30 +251,16 @@ for stored_key, widget_key in FIELD_KEYS.items():
 st.session_state["bill_title"] = st.session_state.get("bill_title_input", "").strip()
 
 with st.expander("Guided Bill Analysis"):
-    st.write(
-        "Run five focused analyses and compile a report with an overall "
-        "conclusion. Use the Bill name above to load the official Bill, or "
-        "upload a PDF or text file instead."
-    )
-    st.caption(
-        "Bill text is sent to OpenAI when you run the analysis. This is not legal advice."
-    )
-    guided_upload = st.file_uploader(
-        "Or upload the Bill (PDF or text)",
-        type=["pdf", "txt"],
-        key="guided_bill_upload",
-    )
+    st.write("Run five focused analyses and compile a report on the Bill.")
     selected_guided_analyses = st.multiselect(
-        "Analyses to include in the report",
+        "Select analyses",
         list(GUIDED_ANALYSES),
         default=list(GUIDED_ANALYSES),
-        help="All five analyses are always run; unticked ones are left out of the report.",
         key="guided_analyses_selected",
     )
-    if st.button("Run guided analysis", type="primary", key="run_guided_analysis"):
+    if st.button("Run selected analyses", type="primary", key="run_guided_analysis"):
         create_guided_analysis(
             st.session_state.get("bill_title_input", "").strip(),
-            guided_upload,
             selected_guided_analyses,
         )
 

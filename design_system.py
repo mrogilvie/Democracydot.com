@@ -155,6 +155,16 @@ def apply_design_system() -> None:
             border-color: #ff72df !important;
             box-shadow: 0 0 24px rgba(255, 56, 209, .6);
         }
+        .st-key-run_guided_analysis button {
+            background: var(--pink) !important;
+            border-color: var(--pink) !important;
+            color: #fff !important;
+        }
+        .st-key-run_guided_analysis button:hover {
+            background: #e01fb9 !important;
+            border-color: #e01fb9 !important;
+            box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
+        }
         .stPageLink a {
             background: #dbeafe !important;
             border: 1px solid #93c5fd !important;
