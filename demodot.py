@@ -227,9 +227,8 @@ def _use_snapshot_notice() -> None:
             return
         st.session_state["_snapshot_notice_run"] = run_marker
         st.warning(
-            "The Parliament website could not be reached live, so saved "
-            f"Parliament records from {bill_snapshot.generated_date()} are being "
-            "used. They may be out of date.",
+            "If Parliament records cannot be reached live, saved 2025-2026 "
+            "records are used.",
             icon=":material/info:",
         )
     except Exception:

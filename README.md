@@ -42,6 +42,7 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Fixed the **Act as passed** section on Democracy Index so the Act comes up automatically: Acts passed in a later year than the Bill (the legislation site names an Act by the year it was passed) and Appropriation/Supply Bills with "(No. n)" or "(Bill n of year)" in the title are now found, and the section explains when a Bill has no Act yet
 - The "saved Parliament records are being used" notice now shows once per page load instead of repeating when several lookups fall back to the snapshot
 - Removed the "Explore the Bill, share your perspective…" line from the home page
+- Reworded the snapshot notice to "If Parliament records cannot be reached live, saved 2025-2026 records are used."
 
 ## Vision
 
