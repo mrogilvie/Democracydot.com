@@ -446,10 +446,6 @@ st.write(
     "incorporates democratic engagement through media, social media and "
     "parliamentary debates."
 )
-st.caption(
-    "Both Bill texts, Hansard text and the Bill name are sent to OpenAI only when you request a comparison. "
-    "Add only material you are authorized to share."
-)
 st.subheader("Find the Bill in Parliament records")
 st.caption(
     "Search the official Parliament of Tasmania website to display the "
