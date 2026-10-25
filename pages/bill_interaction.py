@@ -251,14 +251,17 @@ for stored_key, widget_key in FIELD_KEYS.items():
 st.session_state["bill_title"] = st.session_state.get("bill_title_input", "").strip()
 
 with st.expander("Guided Bill Analysis"):
-    st.write("Run five focused analyses and compile a report on the Bill.")
-    selected_guided_analyses = st.multiselect(
-        "Select analyses",
-        list(GUIDED_ANALYSES),
-        default=list(GUIDED_ANALYSES),
-        key="guided_analyses_selected",
-    )
-    if st.button("Run selected analyses", type="primary", key="run_guided_analysis"):
+    st.write("Select the analyses to include in your report:")
+    selected_guided_analyses = [
+        name
+        for index, name in enumerate(GUIDED_ANALYSES)
+        if st.checkbox(
+            name,
+            value=True,
+            key=f"guided_analysis_option_{index}",
+        )
+    ]
+    if st.button("Compile a Report", type="primary", key="run_guided_analysis"):
         create_guided_analysis(
             st.session_state.get("bill_title_input", "").strip(),
             selected_guided_analyses,
