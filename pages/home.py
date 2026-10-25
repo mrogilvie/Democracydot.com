@@ -1,6 +1,6 @@
 import streamlit as st
 
-DEMOCRACYDOT_FACEBOOK_URL = "https://www.facebook.com/democracydot"
+DEMOCRACYDOT_FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61595771103973"
 
 
 st.markdown(
@@ -133,13 +133,13 @@ st.markdown(
       <span>Democracydot</span>
       <a href="/privacy" target="_self">Privacy Policy</a>
       <nav class="dd-social-links" aria-label="Social media">
-        <a href="https://www.facebook.com/democracydot" target="_blank"
+        <a href="https://www.facebook.com/profile.php?id=61595771103973" target="_blank"
            rel="noopener noreferrer">Facebook</a>
         <a href="https://www.linkedin.com/company/democracydot/"
            target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </nav>
       <span>© 2026 Madeleine Ogilvie. All rights reserved.</span>
     </footer>
-    """,
+    """.replace("{DEMOCRACYDOT_FACEBOOK_URL}", DEMOCRACYDOT_FACEBOOK_URL),
     unsafe_allow_html=True,
 )
