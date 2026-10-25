@@ -40,6 +40,7 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Fixed the HTTP 403 on Bill lookup from the hosted app: requests retry with alternate headers, Bills are found from the Parliament Bills lists before the site search, and 403 errors name the refused address
 - Added a saved snapshot of 2025-2026 Bill records, status and PDFs (`snapshot/`, built by `build_snapshot.py`). The app tries the live Parliament site first and falls back to the snapshot when Parliament's bot protection (Cloudflare) refuses the hosting provider
 - Fixed the **Act as passed** section on Democracy Index so the Act comes up automatically: Acts passed in a later year than the Bill (the legislation site names an Act by the year it was passed) and Appropriation/Supply Bills with "(No. n)" or "(Bill n of year)" in the title are now found, and the section explains when a Bill has no Act yet
+- The "saved Parliament records are being used" notice now shows once per page load instead of repeating when several lookups fall back to the snapshot
 
 ## Vision
 
