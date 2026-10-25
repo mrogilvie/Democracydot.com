@@ -1,7 +1,9 @@
+import html
 import re
 from json import JSONDecodeError, loads
 from urllib.error import HTTPError, URLError
 
+import markdown
 import streamlit as st
 from openai import OpenAIError
 
@@ -54,6 +56,36 @@ def ask_guided_analysis(client, task: str, text: str, max_tokens: int = 700) -> 
         max_output_tokens=max_tokens,
     )
     return response.output_text.strip()
+
+
+def create_guided_report_html(report: str, title: str) -> str:
+    body = markdown.markdown(html.escape(report, quote=False), extensions=["extra"])
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bill analysis: {html.escape(title)}</title>
+  <style>
+    body {{ background: #f7f9ff; color: #102a43; font: 16px/1.65 system-ui, sans-serif; margin: 0; padding: 2rem 1.25rem; }}
+    main {{ background: #fff; border: 1px solid #e0e8f3; border-radius: 20px; box-shadow: 0 12px 32px rgba(16, 42, 67, .06); margin: 0 auto; max-width: 860px; padding: 2rem 2.5rem; }}
+    h1 {{ border-bottom: 3px solid #ff38d1; font-size: 1.9rem; letter-spacing: -.03em; line-height: 1.25; margin-top: 0; padding-bottom: .6rem; }}
+    h2 {{ color: #4778d0; font-size: 1.3rem; letter-spacing: -.02em; margin: 1.8rem 0 .4rem; }}
+    ul, ol {{ padding-left: 1.4rem; }}
+    li {{ margin: .3rem 0; }}
+    em {{ color: #5e7085; }}
+    footer {{ color: #5e7085; font-size: .85rem; margin: 1.5rem auto 0; max-width: 860px; text-align: center; }}
+    @media print {{ body {{ background: #fff; padding: 0; }} main {{ border: 0; box-shadow: none; }} }}
+  </style>
+</head>
+<body>
+  <main>
+{body}
+  </main>
+  <footer>Prepared with Democracydot. Information only, not legal advice.</footer>
+</body>
+</html>
+"""
 
 
 def create_guided_analysis(bill_name: str, selected_analyses: list[str]) -> None:
@@ -277,10 +309,12 @@ if guided_report:
         st.session_state.get("guided_report_title", "bill"),
     ).strip("-") or "bill"
     st.download_button(
-        "Download analysis report (Markdown)",
-        guided_report,
-        file_name=f"{report_slug}-analysis.md",
-        mime="text/markdown",
+        "Download analysis report",
+        create_guided_report_html(
+            guided_report, st.session_state.get("guided_report_title", "Bill")
+        ),
+        file_name=f"{report_slug}-analysis.html",
+        mime="text/html",
         key="download_guided_analysis",
     )
 

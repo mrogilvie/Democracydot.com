@@ -1,4 +1,5 @@
 openai
+markdown
 streamlit[pdf]
 python-dotenv
 pypdf
