@@ -165,6 +165,18 @@ def apply_design_system() -> None:
             border-color: #e01fb9 !important;
             box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
         }
+        [class*="st-key-guided_analysis_option_"] [data-testid="stCheckbox"] label:has(input:checked) {
+            background: var(--pink);
+            border-radius: 8px;
+            color: #fff !important;
+            padding: .25rem .5rem;
+        }
+        [class*="st-key-guided_analysis_option_"] [data-testid="stCheckbox"] label:has(input:checked) * {
+            color: #fff !important;
+        }
+        [class*="st-key-guided_analysis_option_"] [data-testid="stCheckbox"] label:has(input:checked) svg {
+            fill: #fff !important;
+        }
         .stPageLink a {
             background: #dbeafe !important;
             border: 1px solid #93c5fd !important;
