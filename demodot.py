@@ -10,7 +10,8 @@ from html import unescape as html_unescape
 from html.parser import HTMLParser
 from typing import TypedDict
 from urllib.parse import unquote, urlencode, urljoin, urlparse
-from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen as _urlopen
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -44,8 +45,58 @@ BROWSER_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-AU,en;q=0.9",
 }
+# Tried in order when a site answers 403 to the default BROWSER_HEADERS.
+FALLBACK_HEADER_PROFILES = (
+    {
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
+            "(KHTML, like Gecko) Version/17.4 Safari/605.1.15"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-AU,en;q=0.9",
+        "Referer": PARLIAMENT_URL,
+        "Upgrade-Insecure-Requests": "1",
+    },
+    {
+        "User-Agent": (
+            "Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0"
+        ),
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Referer": PARLIAMENT_URL,
+    },
+    {
+        "User-Agent": "curl/8.5.0",
+        "Accept": "*/*",
+    },
+)
 HANSARD_SEARCH_URL = "https://search.parliament.tas.gov.au/search/search/"
 HANSARD_CHAMBERS = ("House of Assembly", "Legislative Council")
+
+
+def urlopen(request: Request, timeout: float):
+    """Open a request, retrying with other header profiles if refused with 403."""
+    try:
+        return _urlopen(request, timeout=timeout)
+    except HTTPError as error:
+        if error.code != 403:
+            raise
+        last_error = error
+
+    custom_headers = {
+        name: value
+        for name, value in request.header_items()
+        if name.casefold() == "x-requested-with"
+    }
+    for profile in FALLBACK_HEADER_PROFILES:
+        retry = Request(request.full_url, headers={**profile, **custom_headers})
+        try:
+            return _urlopen(retry, timeout=timeout)
+        except HTTPError as error:
+            if error.code != 403:
+                raise
+            last_error = error
+    raise last_error
 
 
 class _ParliamentLinkParser(HTMLParser):
