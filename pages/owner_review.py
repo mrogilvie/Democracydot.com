@@ -1,10 +1,14 @@
 import hmac
-import sqlite3
 from datetime import datetime
 
 import streamlit as st
 
-from comment_store import get_comments, get_owner_password, get_signups
+from comment_store import (
+    STORE_ERRORS,
+    get_comments,
+    get_owner_password,
+    get_signups,
+)
 
 
 st.title("Owner review")
@@ -38,7 +42,7 @@ if st.button("Sign out"):
 try:
     comments = get_comments()
     signups = get_signups()
-except (OSError, sqlite3.Error) as error:
+except STORE_ERRORS as error:
     st.error(f"Could not load saved review data: {error}")
     st.stop()
 

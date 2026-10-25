@@ -1,9 +1,8 @@
-import sqlite3
 from urllib.parse import urlencode
 
 import streamlit as st
 
-from comment_store import get_signup_for_device
+from comment_store import STORE_ERRORS, get_signup_for_device
 
 
 DEVICE_COOKIE = "dd_device"
@@ -44,7 +43,7 @@ def restore_signup_from_cookie() -> None:
         return
     try:
         signup = get_signup_for_device(device_cookie)
-    except (OSError, sqlite3.Error):
+    except STORE_ERRORS:
         return
     if signup:
         st.session_state["signup_saved"] = True

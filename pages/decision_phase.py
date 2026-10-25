@@ -1,6 +1,5 @@
 import io
 import re
-import sqlite3
 import zipfile
 from typing import TypedDict
 from urllib.error import URLError
@@ -9,7 +8,7 @@ from urllib.parse import unquote, urlparse
 import streamlit as st
 from openai import OpenAIError
 
-from comment_store import save_comment
+from comment_store import STORE_ERRORS, save_comment
 from demodot import (
     MAX_SOURCE_CHARS,
     MODEL,
@@ -545,7 +544,7 @@ if comment:
             )
         try:
             save_comment(submitted_comment, comment_bill)
-        except (OSError, sqlite3.Error) as error:
+        except STORE_ERRORS as error:
             st.error(f"Could not save your comment: {error}")
         else:
             st.success("Your comment was submitted for the app owner's review.")

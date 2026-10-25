@@ -3,3 +3,4 @@ markdown
 streamlit[pdf]
 python-dotenv
 pypdf
+psycopg[binary]

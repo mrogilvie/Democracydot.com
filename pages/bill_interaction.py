@@ -1,6 +1,5 @@
 import html
 import re
-import sqlite3
 import uuid
 from json import JSONDecodeError, loads
 from urllib.error import HTTPError, URLError
@@ -26,7 +25,7 @@ from demodot import (
     get_openai_client,
     report_openai_error,
 )
-from comment_store import save_signup
+from comment_store import STORE_ERRORS, save_signup
 from follow_dialog import DEVICE_COOKIE, show_follow_dialog
 
 
@@ -663,7 +662,7 @@ with download_area:
                     )
                 except ValueError as error:
                     st.warning(str(error))
-                except (OSError, sqlite3.Error) as error:
+                except STORE_ERRORS as error:
                     st.error(f"Could not save your details: {error}")
                 else:
                     st.session_state["signup_saved"] = True
