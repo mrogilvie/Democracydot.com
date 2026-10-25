@@ -37,6 +37,8 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Moved the Bill Information download section under the "AI supported" line, removed its heading and the "enter a Bill name" box, and reworded the pink button and honour-system note ("It's an honour system")
 - Changed the Guided Bill Analysis download from raw Markdown to a formatted HTML report that matches the on-page layout
 - Set the left-hand navigation sidebar to open expanded so each page opens with a single click
+- Fixed the HTTP 403 on Bill lookup from the hosted app: requests retry with alternate headers, Bills are found from the Parliament Bills lists before the site search, and 403 errors name the refused address
+- Added a saved snapshot of 2025-2026 Bill records, status and PDFs (`snapshot/`, built by `build_snapshot.py`). The app tries the live Parliament site first and falls back to the snapshot when Parliament's bot protection (Cloudflare) refuses the hosting provider
 
 ## Vision
 
@@ -132,6 +134,9 @@ app.py                      Streamlit page configuration and navigation
 design_system.py            Shared Democracydot colors, typography, and component styles
 demodot.py                  Shared OpenAI, source-text, and Bill-session helpers
 comment_store.py            SQLite (local) or Postgres (DATABASE_URL) storage for Billbow submissions and sign-ups
+bill_snapshot.py            Reads the saved Parliament Bill records in snapshot/
+build_snapshot.py           Rebuilds snapshot/ (Bill records, status and PDFs) from the live Parliament site
+snapshot/                   Saved 2025-2026 Bill records and PDFs used when the live site refuses the app
 pages/
   home.py                   App overview and links into the three stages
   bill_interaction.py       Page 1, Bill Information: details, links, and optional summary
@@ -143,6 +148,19 @@ pages/
 PRIVACY.md                  Privacy Policy text
 TERMS.md                    Terms and Conditions text
 requirements.txt            Python dependencies
+```
+
+## Saved Bill snapshot
+
+The Parliament of Tasmania website is behind Cloudflare bot protection, which can answer HTTP 403 to requests from cloud hosts such as Streamlit Community Cloud even though the same requests work from a browser. To keep Bill lookups working, the repository holds a snapshot of the Bills introduced in 2025 and 2026 in `snapshot/` (an `index.json` of Bill titles, document links, passage status and Act links, plus the PDFs in `snapshot/pdfs/`).
+
+The app always tries the live site first. If Parliament refuses the request, it uses the snapshot for Bill matching, document links, status and PDFs, and shows a note with the snapshot date. After a refusal it skips live requests for five minutes so pages stay quick. Bills outside the snapshot still need the live site. Hansard, e-petition and AI web-search features are not part of the snapshot.
+
+The snapshot goes out of date as Bills progress or new ones are introduced. Refresh it from a machine where Parliament is reachable (for example the Codespace), then commit `snapshot/`:
+
+```sh
+python build_snapshot.py          # 2025 and 2026
+python build_snapshot.py 2026     # chosen years only
 ```
 
 ## Dependency list
