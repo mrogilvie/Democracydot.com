@@ -165,16 +165,23 @@ def apply_design_system() -> None:
             border-color: #e01fb9 !important;
             box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
         }
-        [class*="st-key-guided_analysis_option_"] [data-testid="stCheckbox"] label:has(input:checked) {
-            background: var(--pink);
+        [class*="st-key-guided_analysis_option_"]:has(input:checked) [data-testid="stCheckbox"],
+        [class*="st-key-guided_analysis_option_"][data-testid="stCheckbox"]:has(input:checked) {
+            background: var(--pink) !important;
             border-radius: 8px;
-            color: #fff !important;
             padding: .25rem .5rem;
         }
-        [class*="st-key-guided_analysis_option_"] [data-testid="stCheckbox"] label:has(input:checked) * {
+        [class*="st-key-guided_analysis_option_"]:has(input:checked) [data-testid="stCheckbox"] *,
+        [class*="st-key-guided_analysis_option_"][data-testid="stCheckbox"]:has(input:checked) * {
             color: #fff !important;
         }
-        [class*="st-key-guided_analysis_option_"] [data-testid="stCheckbox"] label:has(input:checked) svg {
+        [class*="st-key-guided_analysis_option_"]:has(input:checked) [data-baseweb="checkbox"] > div,
+        [class*="st-key-guided_analysis_option_"][data-testid="stCheckbox"]:has(input:checked) [data-baseweb="checkbox"] > div {
+            background: var(--pink) !important;
+            border-color: #fff !important;
+        }
+        [class*="st-key-guided_analysis_option_"]:has(input:checked) [data-baseweb="checkbox"] svg,
+        [class*="st-key-guided_analysis_option_"][data-testid="stCheckbox"]:has(input:checked) [data-baseweb="checkbox"] svg {
             fill: #fff !important;
         }
         .stPageLink a {
