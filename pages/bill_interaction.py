@@ -651,9 +651,30 @@ def build_full_report_markdown() -> str:
 
 
 with download_area:
+    st.markdown(
+        """
+        <style>
+          .st-key-open_follow_dialog_bill_info button,
+          .st-key-open_follow_dialog_bill_info button:hover,
+          .st-key-open_follow_dialog_bill_info button:focus,
+          .st-key-open_follow_dialog_bill_info button:active {
+            background-color: #ff38d1 !important;
+            border-color: #ff38d1 !important;
+            color: #fff !important;
+          }
+          .st-key-open_follow_dialog_bill_info button p { color: #fff !important; }
+          .st-key-open_follow_dialog_bill_info button:hover {
+            background-color: #e01fb9 !important;
+            border-color: #e01fb9 !important;
+          }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     if st.button(
         "Please follow me on Facebook for access to functions and downloads",
         key="open_follow_dialog_bill_info",
+        type="primary",
     ):
         show_follow_dialog()
     st.caption("It's an honour system")
