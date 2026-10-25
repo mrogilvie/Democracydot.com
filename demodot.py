@@ -454,11 +454,17 @@ def _live_get_parliament_bill_status(bill_page_url: str) -> BillStatus:
 
 
 def parliament_bill_act_title(bill_record_title: str) -> str:
+    # Drop the record's number suffix, e.g. "(45 of 2026)", "(Bill 41 of 2025)"
+    # or the occasional "(21 0f 2026)" typo.
     clean_bill_title = re.sub(
-        r"\s+\(\d+\s+of\s+\d{4}\)$", "", bill_record_title
-    )
+        r"\s*\(\s*(?:Bill\s+)?\d+\s+o[f0]\s+\d{4}\s*\)\s*$",
+        "",
+        bill_record_title,
+        flags=re.IGNORECASE,
+    ).strip()
+    # "Bill" is followed only by an optional "(No. n)" and an optional year.
     act_title, replacements = re.subn(
-        r"\bBill(?=(?:\s+\d{4})?$)",
+        r"\bBill(?=(?:\s+\(No\.?\s*\d+\))?(?:\s+\d{4})?$)",
         "Act",
         clean_bill_title,
         count=1,
@@ -470,6 +476,23 @@ def parliament_bill_act_title(bill_record_title: str) -> str:
 
 
 def find_act_pdf_url(act_title: str) -> str:
+    """Find the Act as passed. The legislation site titles an Act with the year it
+    was passed, so a Bill introduced in one year may become an Act the next."""
+    candidates = [act_title]
+    year = re.search(r"\b(\d{4})$", act_title)
+    if year:
+        candidates.append(f"{act_title[: year.start()]}{int(year.group(1)) + 1}")
+
+    first_error: Exception | None = None
+    for candidate in candidates:
+        try:
+            return _find_act_pdf_url_for_title(candidate)
+        except (OSError, ValueError) as error:
+            first_error = first_error or error
+    raise first_error
+
+
+def _find_act_pdf_url_for_title(act_title: str) -> str:
     try:
         return _live_find_act_pdf_url(act_title)
     except OSError:
