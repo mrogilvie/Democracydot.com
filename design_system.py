@@ -198,6 +198,41 @@ def apply_design_system() -> None:
             border-color: #e01fb9 !important;
             box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
         }
+        .st-key-run_guided_analysis button:focus,
+        .st-key-run_guided_analysis button:active,
+        .st-key-run_guided_analysis button:focus:not(:active),
+        .st-key-run_full_analysis button:focus,
+        .st-key-run_full_analysis button:active,
+        .st-key-run_full_analysis button:focus:not(:active),
+        .st-key-signup_continue button:focus,
+        .st-key-signup_continue button:active,
+        .st-key-signup_continue button:focus:not(:active),
+        .st-key-download_democracy_index button:focus,
+        .st-key-download_democracy_index button:active,
+        .st-key-download_democracy_index button:focus:not(:active),
+        .st-key-download_marked_up_comparison button:focus,
+        .st-key-download_marked_up_comparison button:active,
+        .st-key-download_marked_up_comparison button:focus:not(:active),
+        .st-key-download_documents button:focus,
+        .st-key-download_documents button:active,
+        .st-key-download_documents button:focus:not(:active),
+        .st-key-download_bill_information button:focus,
+        .st-key-download_bill_information button:active,
+        .st-key-download_bill_information button:focus:not(:active),
+        .st-key-download_guided_analysis button:focus,
+        .st-key-download_guided_analysis button:active,
+        .st-key-download_guided_analysis button:focus:not(:active),
+        .st-key-download_hansard_summary button:focus,
+        .st-key-download_hansard_summary button:active,
+        .st-key-download_hansard_summary button:focus:not(:active),
+        .st-key-download_public_discussion button:focus,
+        .st-key-download_public_discussion button:active,
+        .st-key-download_public_discussion button:focus:not(:active) {
+            background: #e01fb9 !important;
+            border-color: #e01fb9 !important;
+            color: #fff !important;
+            box-shadow: none;
+        }
         .dd-hero-copy a.dd-follow-btn {
             display: inline-block;
             margin-top: 1.1rem;

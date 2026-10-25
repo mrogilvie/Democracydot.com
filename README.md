@@ -44,6 +44,7 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Removed the "Explore the Bill, share your perspective…" line from the home page
 - Reworded the snapshot notice to "If Parliament records cannot be reached live, saved 2025-2026 records are used."
 - Reworded the Bill Information AI message to "A summary has been prepared by AI, please review carefully."
+- Set the Streamlit theme primary colour to pink (`.streamlit/config.toml`) and pink focus/pressed states on the pink buttons, so no button turns red
 
 ## Vision
 
