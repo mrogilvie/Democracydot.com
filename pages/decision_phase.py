@@ -357,11 +357,17 @@ st.caption(
     "Bill or Act text will be sent to OpenAI to draft suggested amendment wording. "
     "Review the draft against official sources; it is not legal advice."
 )
-amendment_request = st.text_area(
+def request_amendment() -> None:
+    st.session_state["amendment_request_submitted"] = True
+
+
+amendment_request = st.text_input(
     "What change would you like to propose to the Bill or Act?",
     key="amendment_request",
+    on_change=request_amendment,
+    help="Press Enter to generate a proposed amendment.",
 )
-if st.button("Generate Amendment", key="generate_amendment"):
+if st.session_state.pop("amendment_request_submitted", False):
     st.session_state.pop("proposed_amendment", None)
     amendment_source = get_source_material()
     act_text = st.session_state.get("final_bill_text", "")
