@@ -254,8 +254,7 @@ if st.session_state.pop("bill_autocomplete_requested", False):
 
 if st.session_state.pop("bill_autocompleted", False):
     st.success(
-        "Empty fields were drafted by AI from the Bill text and saved for this "
-        "session. Review and edit them before relying on them."
+        "A summary has been prepared by AI, please review carefully."
     )
 
 FIELD_KEYS = {

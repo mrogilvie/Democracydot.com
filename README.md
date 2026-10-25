@@ -43,6 +43,7 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - The "saved Parliament records are being used" notice now shows once per page load instead of repeating when several lookups fall back to the snapshot
 - Removed the "Explore the Bill, share your perspective…" line from the home page
 - Reworded the snapshot notice to "If Parliament records cannot be reached live, saved 2025-2026 records are used."
+- Reworded the Bill Information AI message to "A summary has been prepared by AI, please review carefully."
 
 ## Vision
 
