@@ -232,6 +232,34 @@ st.text_input(
     help="Press Enter and the fields below are drafted by AI from the Bill text.",
 )
 
+if st.button(
+    "Run full analysis",
+    type="primary",
+    key="run_full_analysis",
+    help="Drafts the Bill fields and runs every guided analysis with a conclusion "
+    "in one go (7 AI calls).",
+):
+    full_title = st.session_state.get("bill_title_input", "").strip()
+    if not full_title:
+        st.warning("Enter a Bill name or number above first.")
+    else:
+        st.session_state["bill_title"] = full_title
+        full_drafted = autocomplete_bill_information(full_title)
+        if full_drafted:
+            for field, key in (
+                ("summary", "bill_summary"),
+                ("background", "bill_background"),
+                ("policy", "bill_policy"),
+            ):
+                st.session_state[key] = (
+                    st.session_state.get(f"{key}_input", "").strip()
+                    or st.session_state.get(key, "").strip()
+                    or full_drafted[field]
+                )
+            st.session_state["bill_autocompleted"] = True
+            st.session_state["bill_autocompleted_now"] = True
+            create_guided_analysis(full_title, list(GUIDED_ANALYSES))
+
 if st.session_state.pop("bill_autocomplete_requested", False):
     new_title = st.session_state.get("bill_title_input", "").strip()
     st.session_state["bill_title"] = new_title
