@@ -2,50 +2,17 @@
 
 Democracydot is an AI-supported civic technology project designed to make the legislative process more transparent, understandable, and engaging for the public. The goal is to turn dense policy and legal language into a clearer, more accessible understanding of what a Bill means, why it matters, and how it changes during parliamentary review.
 
-## Project record
+## How the project developed
 
-The repository has progressed from its initial Python/Streamlit scaffold to a working three-stage prototype for following legislative proposals and constituent engagement. Completed work includes:
+Development followed the original goal of making the Bill process easier to understand and participate in:
 
-- Established the project mission and Python development setup
-- Copied and moved the code to the Democracydot.com repository to access more credits and continue development
-- Added a Streamlit application with a sidebar flow across Bill Information, Democratic Engagement, and Democracy Index
-- Added a responsive visual design system using cornflower blue, marine navy, white, and neon-pink accents
-- Integrated OpenAI using `gpt-4o-mini` for plain-language Bill summaries, source-grounded questions and answers, and structured Bill-version comparisons
-- Added upload and text extraction for PDF, plain-text, and Markdown policy and information documents
-- Added a Billbow comment form and a configurable list of essential-reading links
-- Added a free, no-password sign-up form that collects mobile and email with required permission for updates and announcements
-- Added a visual Demodot Meter and an AI-estimated Democracy Index for original/final Bill alignment
-- Removed the Act as passed PDF button while retaining the embedded document and comparison feature
-- Added durable Billbow comment and opted-in contact storage, visible only through the password-protected owner review page
-- Added API credential loading from a local `.env` file or Streamlit secrets, and ignored local secrets and Python bytecode in Git
-- Updated this documentation with setup, behavior, security/privacy notes, limitations, and the original feature instructions
-- Reordered the pages to Bill Information, Democratic Engagement, and Democracy Index, with matching titles in the sidebar and on the landing page
-- Added a link to Madeleine Ogilvie MP's Facebook page on the landing page, and gated the Democracy Index download behind a self-declared follow of that page (the declaration is not verified by Facebook)
-- Added an on-screen view of the compared document, and search that starts when a Bill name is entered
-- Added a Privacy Policy page (`/privacy`) and Terms and Conditions page (`/terms`), with a browse-to-accept notice on every page
-- Merged the Guided Bill Analysis into the Bill Information page (checkbox list of analyses and a pink **Compile a Report** button), made the Proposed amendment generate when Enter is pressed, and updated the Facebook, LinkedIn and footer links on the landing page
-- Removed the OpenAI data-sharing and Essential reading captions from the top of Bill Information
-- A device that has already given its name and mobile number is now recognised on every page (not only Bill Information), so the Download documents button unlocks without re-entering them
-- Added optional Postgres storage through a `DATABASE_URL` secret (any hosted Postgres provider; none chosen yet) so sign-ups and comments can survive Streamlit Cloud restarts; local development still uses SQLite
-- Added a pink **Download documents** button above the Billbow heading on Democratic Engagement that bundles the official Bill PDFs shown on the page into one ZIP (enabled once the name and mobile form has been completed)
-- On the Democracy Index page, a Bill carried over automatically from page 1 now also runs **Create Democracy Index** as soon as the Parliament search finds it
-- Changed "Download Bill information" to a pink "Download full report": a formatted HTML document combining the Bill information, essential reading, guided analysis, Hansard summary and public discussion
-- Added a pink formatted HTML "Download summary" button under the public discussion summary (same Facebook tick and name/mobile unlock)
-- Added a formatted HTML "Download Summary" button under the Hansard AI summary (enabled after the Facebook tick and name/mobile form)
-- The name and mobile number form is skipped on a device that has already submitted it (remembered with a browser cookie linked to the stored sign-up)
-- Added a name and mobile number form (stored in the signups table) that must be completed before the Bill information download unlocks
-- Moved the Bill Information download section under the "AI supported" line, removed its heading and the "enter a Bill name" box, and reworded the pink button and honour-system note ("It's an honour system")
-- Changed the Guided Bill Analysis download from raw Markdown to a formatted HTML report that matches the on-page layout
-- Set the left-hand navigation sidebar to open expanded so each page opens with a single click
-- Fixed the HTTP 403 on Bill lookup from the hosted app: requests retry with alternate headers, Bills are found from the Parliament Bills lists before the site search, and 403 errors name the refused address
-- Added a saved snapshot of 2025-2026 Bill records, status and PDFs (`snapshot/`, built by `build_snapshot.py`). The app tries the live Parliament site first and falls back to the snapshot when Parliament's bot protection (Cloudflare) refuses the hosting provider
-- Fixed the **Act as passed** section on Democracy Index so the Act comes up automatically: Acts passed in a later year than the Bill (the legislation site names an Act by the year it was passed) and Appropriation/Supply Bills with "(No. n)" or "(Bill n of year)" in the title are now found, and the section explains when a Bill has no Act yet
-- The "saved Parliament records are being used" notice now shows once per page load instead of repeating when several lookups fall back to the snapshot
-- Removed the "Explore the Bill, share your perspective…" line from the home page
-- Reworded the snapshot notice to "If Parliament records cannot be reached live, saved 2025-2026 records are used."
-- Reworded the Bill Information AI message to "A summary has been prepared by AI, please review carefully."
-- The Bill Information "Please follow me on Facebook…" button carries its own pink styling on the page (normal, hover, focus and pressed), so it stays pink even if the global stylesheet is not applied
-- Set the Streamlit theme primary colour to pink (`.streamlit/config.toml`) and pink focus/pressed states on the pink buttons, so no button turns red
+1. **Set up the project.** Started with a Python and Streamlit prototype, established the project mission, and moved the work into this repository so development could continue here.
+2. **Built the three-step workflow.** Organized the app around Bill Information, Democratic Engagement, and Democracy Index, with Tasmanian Parliament Bill lookup and OpenAI-supported summaries, questions, analysis, and comparisons.
+3. **Added ways to participate and share results.** Added Billbow feedback, related reading and petition links, document uploads, and downloadable reports. The Democracy Index can display the compared document and an AI-assisted alignment estimate.
+4. **Improved reliability and privacy.** Added a saved Parliament snapshot for hosting environments that cannot reach the live site, local SQLite with optional Postgres storage, a password-protected owner review page, and Privacy Policy and Terms pages. Name/mobile access is remembered on the user's device for later downloads.
+5. **Refined the deployed experience.** Simplified navigation, made page behavior consistent, and applied the shared visual design and pink action-button styling.
+
+This is a working prototype: some information is AI-generated or based on saved Parliament records, and users should check important details against the official sources.
 
 ## Vision
 
@@ -68,15 +35,15 @@ The project is currently grounded in a lightweight Python stack designed for exp
 - OpenAI models for policy analysis and summarization
 - python-dotenv for environment management
 
-## Current implementation status
+## Current implementation
 
-The Streamlit application opens on a public landing page, and all three Bill features are available without signing in or registering. Navigation is configured in `app.py` (the left-hand sidebar starts expanded, so each page opens with one click), with each page implemented as a dedicated Streamlit page: the home page, Bill Information, Democratic Engagement, and Democracy Index.
+The app opens on a public landing page. The three Bill pages are available without signing in, and the expanded sidebar provides navigation between them.
 
-1. **Bill Information** — a pink **Run full analysis** button (white text) under the Bill name drafts the empty fields and runs all five guided analyses plus the conclusion in one click (7 AI calls); enter a Bill title and press Enter to retrieve the Bill from Tasmanian Parliament records and draft any empty summary, background, and policy context fields (existing text is kept, and the draft should be reviewed); or enter them yourself. The **Guided Bill Analysis** section on this page can run five focused analyses (summary, key changes, affected groups, risks and concerns, and a plain-English explanation) from the official Bill or an uploaded PDF/text file, compile them with an AI-written conclusion, and download the report as a formatted HTML document with a pink **Download analysis report** button that matches how it appears on the page (open it in a browser or print it to PDF). Essential reading shows the Bill's full official title and number, with Hansard debate links and links to any House of Assembly or Legislative Council e-petitions on the Bill or its subject matter added automatically, you can create a Hansard AI summary of the debates (House of Assembly, then Legislative Council, then a conclusion) and download it as a formatted HTML document with the pink **Download Summary** button (unlocked by the same Facebook tick and name/mobile form), download the public discussion summary the same way with the pink **Download summary** button, and, at the bottom of the page, download a **full report**: a formatted HTML document combining the Bill information, Essential reading, Guided Bill Analysis, Hansard AI summary and public discussion that have been generated. The download section sits directly under the "This function is AI supported" line, with a pink "Please follow me on Facebook for access to functions and downloads" button, the note "It's an honour system", and an "I follow Madeleine Ogilvie MP on Facebook" tick box (self-confirmed, not verified). Below it, a form asks for a name and mobile number (skipped on a device that has already submitted it); pressing the pink **Continue** button validates the details and stores them in the local SQLite signups table, remembers the browser with a one-year cookie so the form is not shown again on that device, (the same one shown to the owner on the Owner review page). The pink **Download full report** button then appears at the bottom of the page, above the Parliament website link.
-2. **Democratic Engagement** — the Bill entered on page 1 is carried over and searched automatically (or type another Bill name and press Enter to search Tasmanian Parliament records). The matching Bill as introduced PDF, second reading speech, fact sheet, and clause notes are retrieved and displayed. The page reports the official House of Assembly, Legislative Council, and Royal Assent status, and links to the Final Act when available. Users can ask AI-grounded questions, request an AI-drafted proposed amendment using the available Bill or Act text, and submit anonymous feedback. A pink **Download documents** button above the Billbow heading downloads the Bill and other official PDFs shown on the page as one ZIP file, once the name and mobile number have been entered on Bill Information (a device that has already submitted them is recognised on every page).
-3. **Democracy Index** — the Bill entered on page 1 is carried over and searched automatically for the session (you can still search another Bill). enter a Bill name on the Tasmanian Parliament website search to view its introduced PDF and automatically find and view the corresponding Act as passed PDF. The search starts when the name is entered, and when the Bill is carried over automatically from page 1 the Democracy Index is created automatically once the Bill is found (typing a different Bill still needs the **Create Democracy Index** button). Under the **Generate Democracy Index** heading, use the **Create Democracy Index** button (with a countdown timer while it processes) to get an AI-assisted alignment score. The separate **Generate compare document** button builds the compared document with changes marked, shows it on screen and offers it for download with a pink **Download compare document** button. The report also shows a "Democratic importance" weighting from the signatures on related House of Assembly and Legislative Council e-petitions (limited, moderate, high or very high; paper petitions are not counted). The finished Democracy Index report can be downloaded with the pink **Download the Democracy Index** button (including the Democracy Index graphic and a Democracydot terms notation), with no confirmation tick box.
+1. **Bill Information** — Search for a Tasmanian Bill or upload a document. The app can draft missing Bill details, run five focused analyses and a conclusion, and produce a Hansard summary, public-discussion summary, and combined HTML report. Essential-reading links include relevant Hansard and e-petition sources when available. Downloads on this page use a name/mobile form and a self-declared Facebook-follow tick; the Facebook declaration is not verified. A browser cookie remembers a completed name/mobile form on that device.
+2. **Democratic Engagement** — Continue with the selected Bill to view available official documents and its parliamentary status. Users can ask Bill-grounded questions, request a proposed amendment, and submit Billbow feedback. The page can bundle the displayed official PDFs into a ZIP after the name/mobile form has been completed.
+3. **Democracy Index** — Find the Bill and, when available, its Act as passed. Create an AI-assisted alignment estimate and a marked-up comparison document; the report can also show the importance weighting derived from related electronic petition signatures. The Index is an estimate, not an official parliamentary rating or legal advice.
 
-The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are also available as pages, and a notice at the bottom of every page says that using the app means accepting the terms.
+The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are available as app pages. A notice on each page explains that using the app indicates acceptance of the terms.
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.
 
@@ -88,7 +55,7 @@ Checked against the assessment criteria (select a discrete legal task and build 
 |---|---|---|
 | A specific legal task | Met | Analysing a Tasmanian Bill: its text, debates, public discussion, Act as passed, and how the Act differs from the Bill. |
 | 3 discrete steps | Met | The three pages: **Bill Information**, **Democratic Engagement** and **Democracy Index** (listed in `app.py`). |
-| At least 5 AI calls per run | Met | Bill field auto-fill is 1 call, and the Guided Bill Analysis in `pages/bill_interaction.py` makes several more. A full Democracy Index adds 3 calls: public discussion, process analysis and document comparison. Hansard summary, public discussion, Q&A and amendment drafting each have their own call. The **Run full analysis** button on Bill Information makes 7 AI calls in one click. |
+| At least 5 AI calls | Met | Bill field auto-fill is 1 call, and the Guided Bill Analysis in `pages/bill_interaction.py` makes several more. A full Democracy Index adds 3 calls: public discussion, process analysis and document comparison. Hansard summary, public discussion, Q&A and amendment drafting each have their own call. The **Run full analysis** button on Bill Information makes 7 AI calls in one click. |
 | User input | Met | Bill name search, uploads, questions, an amendment description and comments. |
 | Output | Met | On-screen analyses, the Democracy Index score, a compare document and downloadable reports. |
 | Deployed on Streamlit with an API credentials sidebar | Met | The sidebar in `app.py` has a password-type "OpenAI API key" field, falling back to `OPENAI_API_KEY` in secrets or the environment. Deployed at `democracydotcom.streamlit.app`. |
@@ -117,7 +84,7 @@ To enable the private owner review page, set a strong password in the root `.env
 DEMOCRACYDOT_OWNER_PASSWORD=choose-a-strong-unique-password
 ```
 
-For deployment, configure `DEMOCRACYDOT_OWNER_PASSWORD` in Streamlit secrets instead. Billbow comments and sign-up names and mobile numbers are stored in `comments.sqlite3` in the project root when running locally. On Streamlit Community Cloud that file is lost whenever the app restarts, so sign-ups and comments will not last until a durable database is chosen. The app already supports any hosted Postgres database: set a `DATABASE_URL` secret and it is used automatically, with no other code change. No provider has been chosen yet.
+For deployment, configure `DEMOCRACYDOT_OWNER_PASSWORD` in Streamlit secrets instead. Billbow comments and sign-up names and mobile numbers are stored in `comments.sqlite3` in the project root when running locally. On Streamlit Community Cloud, the local database file is not durable across restarts. Configure `DATABASE_URL` with a hosted Postgres connection string to persist sign-ups and comments between restarts.
 
 To use a hosted Postgres database, copy its **connection string** (it looks like `postgresql://user:password@host/dbname?sslmode=require`) and add it to the app's Streamlit secrets. Keep the string private; never commit it.
 
@@ -129,14 +96,6 @@ DATABASE_URL = "postgresql://user:password@host/dbname?sslmode=require"
 
 The tables are created automatically the first time the app saves or reads data.
 
-## Deployment
-
-The app is deployed from this repository on Streamlit Community Cloud (repository `mrogilvie/Democracydot.com`, branch `main`, main file `app.py`). Add `OPENAI_API_KEY` and `DEMOCRACYDOT_OWNER_PASSWORD` under **Advanced settings → Secrets**. Pushes to `main` update the live app. Community Cloud does not support custom domains, so the app is served from a `streamlit.app` address.
-
-### Public repository
-
-Streamlit Community Cloud allows only one private app per account, so this repository is made public. The code is safe to publish because it is a civic app with nothing sensitive in the source. Private data, such as sign-ups, comments, the OpenAI key, the owner password and any database connection string, stays out of the repository: keep secrets only in Streamlit **Secrets**, and never commit them.
-
 ## Run the app
 
 After completing the development setup, start the Streamlit app from the repository root:
@@ -145,7 +104,15 @@ After completing the development setup, start the Streamlit app from the reposit
 streamlit run app.py
 ```
 
-Streamlit prints a local URL in the terminal. Open that URL in a browser to use the app and move between pages in the sidebar; no sign-in is required. Bill details and links are retained in the session, while comments and sign-ups are stored in the local SQLite database.
+Streamlit prints a local URL in the terminal. Open it in a browser to use the app and move between pages in the sidebar; no sign-in is required. Bill details and links are retained in the session. Comments and sign-ups use local SQLite unless `DATABASE_URL` is configured.
+
+## Deployment
+
+The app is deployed from this repository on Streamlit Community Cloud (repository `mrogilvie/Democracydot.com`, branch `main`, main file `app.py`). Add `OPENAI_API_KEY` and `DEMOCRACYDOT_OWNER_PASSWORD` under **Advanced settings → Secrets**. Add `DATABASE_URL` there if durable hosted storage is configured. Pushes to `main` update the live app. Community Cloud does not support custom domains, so the app is served from a `streamlit.app` address.
+
+### Public repository
+
+Streamlit Community Cloud allows only one private app per account, so this repository is made public. The code is safe to publish because it is a civic app with nothing sensitive in the source. Private data, such as sign-ups, comments, the OpenAI key, the owner password and any database connection string, stays out of the repository: keep secrets only in Streamlit **Secrets**, and never commit them.
 
 ## Repository layout
 
