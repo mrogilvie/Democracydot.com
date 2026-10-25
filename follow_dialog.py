@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 import streamlit as st
 
 
-FACEBOOK_PAGE_URL = "https://facebook.com/madeleineogilvie.com.au"
+FACEBOOK_PAGE_URL = "https://www.facebook.com/madeleineogilvie.com.au/"
 FACEBOOK_FOLLOW_WIDGET_URL = (
     "https://www.facebook.com/plugins/page.php?"
     + urlencode(
