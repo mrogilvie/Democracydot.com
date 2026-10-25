@@ -218,18 +218,16 @@ class BillStatus(TypedDict):
 
 
 def _use_snapshot_notice() -> None:
-    """Tell the user, once per page run, that saved Parliament records are shown."""
-    from streamlit.runtime.scriptrunner import get_script_run_ctx
-
-    context = get_script_run_ctx()
-    if context is None or st.session_state.get("_snapshot_notice_run") == context.script_run_id:
-        return
-    st.session_state["_snapshot_notice_run"] = context.script_run_id
-    st.caption(
-        "The Parliament website could not be reached live, so saved Parliament "
-        f"records from {bill_snapshot.generated_date()} are shown. They may be "
-        "out of date."
-    )
+    """Show that saved Parliament records are in use; never let it break a lookup."""
+    try:
+        st.warning(
+            "The Parliament website could not be reached live, so saved "
+            f"Parliament records from {bill_snapshot.generated_date()} are being "
+            "used. They may be out of date.",
+            icon=":material/info:",
+        )
+    except Exception:
+        pass
 
 
 def get_openai_client() -> OpenAI | None:
