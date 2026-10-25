@@ -157,6 +157,7 @@ def apply_design_system() -> None:
         }
         .st-key-run_guided_analysis button,
         .st-key-signup_continue button,
+        .st-key-download_democracy_index button,
         .st-key-download_marked_up_comparison button,
         .st-key-download_documents button,
         .st-key-download_bill_information button,
@@ -172,6 +173,7 @@ def apply_design_system() -> None:
         }
         .st-key-run_guided_analysis button p,
         .st-key-signup_continue button p,
+        .st-key-download_democracy_index button p,
         .st-key-download_marked_up_comparison button p,
         .st-key-download_documents button p,
         .st-key-download_bill_information button p,
@@ -182,6 +184,7 @@ def apply_design_system() -> None:
         }
         .st-key-run_guided_analysis button:hover,
         .st-key-signup_continue button:hover,
+        .st-key-download_democracy_index button:hover,
         .st-key-download_marked_up_comparison button:hover,
         .st-key-download_documents button:hover,
         .st-key-download_bill_information button:hover,

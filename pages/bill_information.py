@@ -801,22 +801,14 @@ if isinstance(previous, dict) or isinstance(report, dict):
                 st.markdown(f"- {area}")
         st.caption(previous["evidence_note"])
 
-    st.markdown("**Download the Democracy Index**")
-    follows_for_index = st.checkbox(
-        "I follow Madeleine Ogilvie MP on Facebook",
-        key="follows_madeleine_ogilvie_mp_index",
+    index_title = st.session_state.get("parliament_bill_search_name", "Bill")
+    index_slug = re.sub(r"[^A-Za-z0-9]+", "-", index_title).strip("-").lower()
+    st.download_button(
+        "Download the Democracy Index",
+        data=create_index_report_html(
+            previous if isinstance(previous, dict) else None, report, index_title
+        ),
+        file_name=f"{index_slug or 'bill'}-democracy-index.html",
+        mime="text/html",
+        key="download_democracy_index",
     )
-    if follows_for_index:
-        index_title = st.session_state.get("parliament_bill_search_name", "Bill")
-        index_slug = re.sub(r"[^A-Za-z0-9]+", "-", index_title).strip("-").lower()
-        st.download_button(
-            "Download Democracy Index",
-            data=create_index_report_html(
-                previous if isinstance(previous, dict) else None, report, index_title
-            ),
-            file_name=f"{index_slug or 'bill'}-democracy-index.html",
-            mime="text/html",
-            key="download_democracy_index",
-        )
-    else:
-        st.info("Confirm that you follow the Facebook page to enable this download.")
