@@ -27,7 +27,6 @@ from demodot import (
     publish_session_bill,
     sync_session_bill,
 )
-from follow_dialog import show_follow_dialog
 
 
 LEVELS = [
@@ -586,11 +585,6 @@ with st.container(border=True):
         "Madeleine Ogilvie MP on Facebook and confirm below. This confirmation "
         "is not verified by Facebook."
     )
-    if st.button(
-        "Visit Madeleine Ogilvie MP and follow to access downloads",
-        key="open_follow_dialog",
-    ):
-        show_follow_dialog()
     follows_madeleine = st.checkbox(
         "I follow Madeleine Ogilvie MP on Facebook",
         key="follows_madeleine_ogilvie_mp",
