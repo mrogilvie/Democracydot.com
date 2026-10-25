@@ -34,6 +34,7 @@ MAX_SOURCE_CHARS = 60_000
 PARLIAMENT_URL = "https://www.parliament.tas.gov.au/"
 PARLIAMENT_HOST = urlparse(PARLIAMENT_URL).hostname
 PARLIAMENT_SEARCH_URL = f"{PARLIAMENT_URL.rstrip('/')}/search-results"
+PARLIAMENT_BILLS_URL = f"{PARLIAMENT_URL.rstrip('/')}/bills"
 LEGISLATION_URL = "https://www.legislation.tas.gov.au"
 LEGISLATION_HOST = urlparse(LEGISLATION_URL).hostname
 LEGISLATION_SEARCH_URL = f"{LEGISLATION_URL}/projectdata"
@@ -211,12 +212,9 @@ def report_openai_error(error: OpenAIError) -> None:
         st.error("The OpenAI request failed. Please try again.")
 
 
-def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
-    search_url = (
-        f"{PARLIAMENT_SEARCH_URL}?"
-        f"{urlencode({'queries_all_query': bill_name})}"
-    )
-    request = Request(search_url, headers={**BROWSER_HEADERS})
+def _fetch_parliament_bill_links(page_url: str) -> list[tuple[str, str]]:
+    """Return (url, title) for every Bill record linked from a Parliament page."""
+    request = Request(page_url, headers={**BROWSER_HEADERS})
     with urlopen(request, timeout=15) as response:
         final_url = urlparse(response.geturl())
         if final_url.scheme != "https" or final_url.hostname != PARLIAMENT_HOST:
@@ -229,15 +227,21 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
     parser.feed(page)
     bills = []
     for href, label in parser.links:
-        bill_url = urljoin(search_url, href)
+        bill_url = urljoin(page_url, href)
         parsed_bill_url = urlparse(bill_url)
         if (
             parsed_bill_url.scheme == "https"
             and parsed_bill_url.hostname == PARLIAMENT_HOST
             and parsed_bill_url.path.startswith("/bills/")
+            and label
         ):
             bills.append((bill_url, label))
+    return bills
 
+
+def _match_parliament_bill(
+    bill_name: str, bills: list[tuple[str, str]]
+) -> tuple[str, str] | None:
     wanted = " ".join(bill_name.casefold().split())
     for bill_url, label in bills:
         if label.casefold().startswith(wanted):
@@ -263,6 +267,38 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
             contained,
             key=lambda item: max(map(int, re.findall(r"\b(?:19|20)\d{2}\b", item[1])), default=0),
         )
+    return None
+
+
+def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
+    # The Bills listing is a plain page; the site search is more likely to be
+    # refused (HTTP 403) for requests from cloud hosts, so it is only a fallback.
+    try:
+        match = _match_parliament_bill(
+            bill_name, _fetch_parliament_bill_links(PARLIAMENT_BILLS_URL)
+        )
+    except (OSError, ValueError):
+        match = None
+    if match:
+        return match
+
+    search_url = (
+        f"{PARLIAMENT_SEARCH_URL}?"
+        f"{urlencode({'queries_all_query': bill_name})}"
+    )
+    match = None
+    try:
+        match = _match_parliament_bill(
+            bill_name, _fetch_parliament_bill_links(search_url)
+        )
+    except HTTPError as error:
+        raise ValueError(
+            f"No Parliament Bill record was found for {bill_name!r} on the "
+            f"current Bills list, and the Parliament site search refused the "
+            f"request (HTTP {error.code})."
+        ) from error
+    if match:
+        return match
     raise ValueError(f"No Parliament Bill record was found for {bill_name!r}.")
 
 
