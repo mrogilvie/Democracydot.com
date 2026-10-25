@@ -652,7 +652,7 @@ def build_full_report_markdown() -> str:
 
 with download_area:
     if st.button(
-        "Please follow me on facebook for downloads access",
+        "Please follow me on Facebook for access to functions and downloads",
         key="open_follow_dialog_bill_info",
     ):
         show_follow_dialog()

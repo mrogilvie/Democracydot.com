@@ -134,6 +134,9 @@ def apply_design_system() -> None:
         [class*="st-key-"][class*="follow_dialog"] button p {
             color: #fff !important;
         }
+        [class*="st-key-"][class*="follow_dialog"] button:focus,
+        [class*="st-key-"][class*="follow_dialog"] button:active,
+        [class*="st-key-"][class*="follow_dialog"] button:focus:not(:active),
         [class*="st-key-"][class*="follow_dialog"] button:hover {
             background: #e01fb9 !important;
             border-color: #e01fb9 !important;
