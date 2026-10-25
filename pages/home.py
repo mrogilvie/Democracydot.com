@@ -37,14 +37,11 @@ st.markdown(
         To access downloads and functions in Democracydot please join my
         facebook page.
       </p>
+      <a class="dd-follow-btn" href="{FACEBOOK_PAGE_URL}" target="_blank"
+         rel="noopener noreferrer">Follow Madeleine Ogilvie MP on Facebook</a>
     </section>
-    """,
+    """.replace("{FACEBOOK_PAGE_URL}", FACEBOOK_PAGE_URL),
     unsafe_allow_html=True,
-)
-st.link_button(
-    "Follow Madeleine Ogilvie MP on Facebook",
-    FACEBOOK_PAGE_URL,
-    key="home_facebook_link",
 )
 
 st.markdown(

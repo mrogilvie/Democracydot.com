@@ -165,16 +165,23 @@ def apply_design_system() -> None:
             border-color: #e01fb9 !important;
             box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
         }
-        .st-key-home_facebook_link a {
-            background: var(--pink) !important;
-            border-color: var(--pink) !important;
+        .dd-hero-copy a.dd-follow-btn {
+            display: inline-block;
+            margin-top: 1.1rem;
+            padding: .6rem 1.4rem;
+            background: var(--pink);
+            border: 1px solid var(--pink);
+            border-radius: 999px;
             color: #fff !important;
+            font-weight: 650;
             text-decoration: none !important;
+            transition: transform .16s ease, box-shadow .16s ease;
         }
-        .st-key-home_facebook_link a:hover {
-            background: #e01fb9 !important;
-            border-color: #e01fb9 !important;
+        .dd-hero-copy a.dd-follow-btn:hover {
+            background: #e01fb9;
+            border-color: #e01fb9;
             box-shadow: 0 8px 22px rgba(255, 56, 209, .35);
+            transform: translateY(-1px);
         }
         .stPageLink a {
             background: #dbeafe !important;
