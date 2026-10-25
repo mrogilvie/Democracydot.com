@@ -4,6 +4,7 @@ import re
 import zipfile
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from html import unescape as html_unescape
@@ -277,15 +278,34 @@ def _match_parliament_bill(
     return None
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _all_parliament_bill_links() -> list[tuple[str, str]]:
+    """Bills from the main list and each year's 'introduced' page (cached)."""
+    this_year = datetime.now().year
+    pages = [PARLIAMENT_BILLS_URL] + [
+        f"{PARLIAMENT_BILLS_URL}/bills-introduced-into-parliament-{year}"
+        for year in range(this_year, 2009, -1)
+    ]
+
+    def fetch(page_url: str) -> list[tuple[str, str]]:
+        try:
+            return _fetch_parliament_bill_links(page_url)
+        except (OSError, ValueError):
+            return []
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = list(pool.map(fetch, pages))
+    seen: dict[str, str] = {}
+    for bills in results:
+        for bill_url, label in bills:
+            seen.setdefault(bill_url, label)
+    return list(seen.items())
+
+
 def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
-    # The Bills listing is a plain page; the site search is more likely to be
+    # The Bills lists are plain pages; the site search is more likely to be
     # refused (HTTP 403) for requests from cloud hosts, so it is only a fallback.
-    try:
-        match = _match_parliament_bill(
-            bill_name, _fetch_parliament_bill_links(PARLIAMENT_BILLS_URL)
-        )
-    except (OSError, ValueError):
-        match = None
+    match = _match_parliament_bill(bill_name, _all_parliament_bill_links())
     if match:
         return match
 
