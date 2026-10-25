@@ -10,6 +10,16 @@ st.set_page_config(
 )
 apply_design_system()
 
+with st.sidebar:
+    st.header("OpenAI credentials")
+    st.text_input(
+        "OpenAI API key",
+        type="password",
+        key="openai_api_key",
+        placeholder="sk-...",
+        help="Used only for this session to call the OpenAI API.",
+    )
+
 home_page = st.Page(
     "pages/home.py",
     title="Home",
@@ -20,6 +30,12 @@ home_page = st.Page(
 pages = {
     "Democracydot": [
         home_page,
+        st.Page(
+            "pages/guided_analysis.py",
+            title="Guided Bill Analysis",
+            icon=":material/fact_check:",
+            url_path="guided-analysis",
+        ),
         st.Page(
             "pages/bill_interaction.py",
             title="Bill Information",

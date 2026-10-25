@@ -53,6 +53,8 @@ The Streamlit application opens on a public landing page, and all three Bill fea
 2. **Democratic Engagement** — the Bill entered on page 1 is carried over and searched automatically (or type another Bill name and press Enter to search Tasmanian Parliament records). The matching Bill as introduced PDF, second reading speech, fact sheet, and clause notes are retrieved and displayed. The page reports the official House of Assembly, Legislative Council, and Royal Assent status, and links to the Final Act when available. Users can ask AI-grounded questions, request an AI-drafted proposed amendment using the available Bill or Act text, and submit anonymous feedback.
 3. **Democracy Index** — the Bill entered on page 1 is carried over and searched automatically for the session (you can still search another Bill). enter a Bill name on the Tasmanian Parliament website search to view its introduced PDF and automatically find and view the corresponding Act as passed PDF. The search starts when the name is entered. Under the **Generate Democracy Index** heading, use the **Create Democracy Index** button (with a countdown timer while it processes) to get an AI-assisted alignment score. The separate **Generate compare document** button (enabled once the user confirms they follow Madeleine Ogilvie MP on Facebook) builds the compared document with changes marked, shows it on screen and offers it for download; this confirmation is a self-declaration and is not verified. The report also shows a "Democratic importance" weighting from the signatures on related House of Assembly and Legislative Council e-petitions (limited, moderate, high or very high; paper petitions are not counted). The finished Democracy Index report can be downloaded the same way (including the Democracy Index graphic and a Democracydot terms notation), with its own confirmation checkbox.
 
+The **Guided Bill Analysis** page (`pages/guided_analysis.py`) is a self-contained three-step legal research workflow: (1) load a Bill by name from Tasmanian Parliament records or by file upload (PDF/text), (2) run five AI analyses (summary, key changes, affected groups, risks and concerns, plain-English explanation), and (3) review the compiled report, which includes an AI-written conclusion, and download it as Markdown. Each run makes at least six AI calls.
+
 The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are also available as pages, and a notice at the bottom of every page says that using the app means accepting the terms.
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.
@@ -67,13 +69,13 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-To enable AI summaries, Bill Q&A, and version comparison, put your OpenAI API key in the root `.env` file:
+Enter your OpenAI API key in the **sidebar** ("OpenAI API key") when using the app; it is kept only in the session. Alternatively, put it in the root `.env` file or Streamlit secrets as a fallback:
 
 ```env
 OPENAI_API_KEY=your_api_key_here
 ```
 
-The app also supports an `OPENAI_API_KEY` value in Streamlit secrets when deployed. Never commit or share your key. Text and documents are sent to OpenAI only when an AI feature is requested. Do not upload personal or sensitive information without permission.
+Never commit or share your key. Text and documents are sent to OpenAI only when an AI feature is requested. Do not upload personal or sensitive information without permission.
 
 To enable the private owner review page, set a strong password in the root `.env` file:
 
@@ -109,6 +111,7 @@ pages/
   bill_interaction.py       Page 1, Bill Information: details, links, and optional summary
   decision_phase.py         Page 2, Democratic Engagement: Billbow comments and Bill-grounded Q&A
   bill_information.py       Page 3, Democracy Index: Bill comparison, markup, and Demodot Meter
+  guided_analysis.py        Guided Bill Analysis: three-step workflow with five AI analyses and a report download
   privacy.py                Privacy Policy page, rendered from PRIVACY.md
   terms.py                  Terms and Conditions page, rendered from TERMS.md
   owner_review.py           Password-protected review of comments and sign-ups

@@ -124,16 +124,15 @@ class BillStatus(TypedDict):
 
 def get_openai_client() -> OpenAI | None:
     load_dotenv(Path(__file__).resolve().with_name(".env"))
-    try:
-        api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
-    except StreamlitSecretNotFoundError:
-        api_key = os.getenv("OPENAI_API_KEY")
+    api_key = (st.session_state.get("openai_api_key") or "").strip()
+    if not api_key:
+        try:
+            api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+        except StreamlitSecretNotFoundError:
+            api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
-        st.error(
-            "OpenAI API key not found. Add OPENAI_API_KEY to the project .env "
-            "file or Streamlit secrets."
-        )
+        st.error("OpenAI API key not found. Enter your key in the sidebar.")
         return None
     return OpenAI(api_key=api_key, timeout=45)
 
