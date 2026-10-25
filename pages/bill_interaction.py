@@ -524,6 +524,31 @@ if result:
         "partial and not representative of all constituents. Check the cited "
         "sources."
     )
+    discussion_unlocked = bool(
+        st.session_state.get("bill_info_follows_madeleine")
+        and st.session_state.get("signup_saved")
+    )
+    discussion_slug = re.sub(r"[^A-Za-z0-9]+", "-", result[0]).strip("-") or "bill"
+    st.download_button(
+        "Download",
+        data=create_guided_report_html(
+            f"# Public sentiment: {result[0]}\n\n{result[1]}\n\n"
+            "_AI-generated from web search results. Coverage of social media is "
+            "partial and not representative of all constituents. Check the cited "
+            "sources._",
+            result[0],
+            "Public discussion",
+        ),
+        file_name=f"{discussion_slug}-public-discussion.html",
+        mime="text/html",
+        key="download_public_discussion",
+        disabled=not discussion_unlocked,
+    )
+    if not discussion_unlocked:
+        st.caption(
+            "Tick the Facebook box and enter your name and mobile number near the "
+            "top of this page to enable the download."
+        )
 
 st.divider()
 
