@@ -46,10 +46,6 @@ st.markdown(
 )
 
 st.markdown(
-    "Explore the Bill, share your perspective, and see how the final text compares "
-    "with the original."
-)
-st.markdown(
     """
     <style>
       [data-testid="stHorizontalBlock"]:has([class*="st-key-dd-home-card-"]) {
