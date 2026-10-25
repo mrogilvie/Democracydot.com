@@ -98,6 +98,14 @@ def urlopen(request: Request, timeout: float):
             if error.code != 403:
                 raise
             last_error = error
+    # A short pause then one more attempt: some firewalls refuse bursts only briefly.
+    time.sleep(2)
+    try:
+        return _urlopen(request, timeout=timeout)
+    except HTTPError as error:
+        if error.code != 403:
+            raise
+        last_error = error
     raise HTTPError(
         last_error.url,
         last_error.code,
@@ -279,35 +287,31 @@ def _match_parliament_bill(
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def _all_parliament_bill_links() -> list[tuple[str, str]]:
-    """Bills from the main list and each year's 'introduced' page (cached)."""
+def _cached_parliament_bill_links(page_url: str) -> list[tuple[str, str]]:
+    return _fetch_parliament_bill_links(page_url)
+
+
+def _parliament_bill_list_pages() -> list[str]:
     this_year = datetime.now().year
-    pages = [PARLIAMENT_BILLS_URL] + [
+    return [PARLIAMENT_BILLS_URL] + [
         f"{PARLIAMENT_BILLS_URL}/bills-introduced-into-parliament-{year}"
         for year in range(this_year, 2009, -1)
     ]
-
-    def fetch(page_url: str) -> list[tuple[str, str]]:
-        try:
-            return _fetch_parliament_bill_links(page_url)
-        except (OSError, ValueError):
-            return []
-
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        results = list(pool.map(fetch, pages))
-    seen: dict[str, str] = {}
-    for bills in results:
-        for bill_url, label in bills:
-            seen.setdefault(bill_url, label)
-    return list(seen.items())
 
 
 def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
     # The Bills lists are plain pages; the site search is more likely to be
     # refused (HTTP 403) for requests from cloud hosts, so it is only a fallback.
-    match = _match_parliament_bill(bill_name, _all_parliament_bill_links())
-    if match:
-        return match
+    # Pages are read one at a time, newest first, to avoid a burst of requests.
+    for page_url in _parliament_bill_list_pages():
+        try:
+            match = _match_parliament_bill(
+                bill_name, _cached_parliament_bill_links(page_url)
+            )
+        except (OSError, ValueError):
+            continue
+        if match:
+            return match
 
     search_url = (
         f"{PARLIAMENT_SEARCH_URL}?"
