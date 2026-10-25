@@ -111,6 +111,10 @@ The tables are created automatically the first time the app saves or reads data.
 
 The app is deployed from this repository on Streamlit Community Cloud (repository `mrogilvie/Democracydot.com`, branch `main`, main file `app.py`). Add `OPENAI_API_KEY` and `DEMOCRACYDOT_OWNER_PASSWORD` under **Advanced settings → Secrets**. Pushes to `main` update the live app. Community Cloud does not support custom domains, so the app is served from a `streamlit.app` address.
 
+### Public repository
+
+Streamlit Community Cloud allows only one private app per account, so this repository is made public. The code is safe to publish because it is a civic app with nothing sensitive in the source. Private data, such as sign-ups, comments, the OpenAI key, the owner password and any database connection string, stays out of the repository: keep secrets only in Streamlit **Secrets**, and never commit them.
+
 ## Run the app
 
 After completing the development setup, start the Streamlit app from the repository root:
