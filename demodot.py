@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlencode, urljoin, urlparse
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen as _urlopen
 
+import bill_snapshot
 import streamlit as st
 from dotenv import load_dotenv
 from openai import (
