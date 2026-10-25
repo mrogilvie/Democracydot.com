@@ -77,8 +77,24 @@ HANSARD_SEARCH_URL = "https://search.parliament.tas.gov.au/search/search/"
 HANSARD_CHAMBERS = ("House of Assembly", "Legislative Council")
 
 
+USE_SNAPSHOT = True
+# After Parliament refuses this host, skip further live requests for a while.
+LIVE_BLOCK_SECONDS = 300
+_live_blocked_until = 0.0
+
+
 def urlopen(request: Request, timeout: float):
     """Open a request, retrying with other header profiles if refused with 403."""
+    global _live_blocked_until
+    is_parliament = urlparse(request.full_url).hostname == PARLIAMENT_HOST
+    if USE_SNAPSHOT and is_parliament and time.monotonic() < _live_blocked_until:
+        raise HTTPError(
+            request.full_url,
+            403,
+            f"Forbidden - refused by {PARLIAMENT_HOST} ({request.full_url})",
+            {},
+            None,
+        )
     try:
         return _urlopen(request, timeout=timeout)
     except HTTPError as error:
@@ -107,6 +123,8 @@ def urlopen(request: Request, timeout: float):
         if error.code != 403:
             raise
         last_error = error
+    if is_parliament:
+        _live_blocked_until = time.monotonic() + LIVE_BLOCK_SECONDS
     raise HTTPError(
         last_error.url,
         last_error.code,
@@ -197,6 +215,21 @@ class BillStatus(TypedDict):
     house_of_assembly: ChamberStatus
     legislative_council: ChamberStatus
     royal_assent_date: str | None
+
+
+def _use_snapshot_notice() -> None:
+    """Tell the user, once per page run, that saved Parliament records are shown."""
+    from streamlit.runtime.scriptrunner import get_script_run_ctx
+
+    context = get_script_run_ctx()
+    if context is None or st.session_state.get("_snapshot_notice_run") == context.script_run_id:
+        return
+    st.session_state["_snapshot_notice_run"] = context.script_run_id
+    st.caption(
+        "The Parliament website could not be reached live, so saved Parliament "
+        f"records from {bill_snapshot.generated_date()} are shown. They may be "
+        "out of date."
+    )
 
 
 def get_openai_client() -> OpenAI | None:
@@ -314,6 +347,11 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
         if match:
             return match
 
+    if USE_SNAPSHOT:
+        match = _match_parliament_bill(bill_name, bill_snapshot.bill_links())
+        if match:
+            return match
+
     search_url = (
         f"{PARLIAMENT_SEARCH_URL}?"
         f"{urlencode({'queries_all_query': bill_name})}"
@@ -335,6 +373,17 @@ def find_parliament_bill_page(bill_name: str) -> tuple[str, str]:
 
 
 def get_parliament_bill_status(bill_page_url: str) -> BillStatus:
+    try:
+        return _live_get_parliament_bill_status(bill_page_url)
+    except OSError:
+        saved = USE_SNAPSHOT and bill_snapshot.bill_status(bill_page_url)
+        if not saved:
+            raise
+        _use_snapshot_notice()
+        return saved
+
+
+def _live_get_parliament_bill_status(bill_page_url: str) -> BillStatus:
     parsed_bill_url = urlparse(bill_page_url)
     if (
         parsed_bill_url.scheme != "https"
@@ -419,6 +468,17 @@ def parliament_bill_act_title(bill_record_title: str) -> str:
 
 
 def find_act_pdf_url(act_title: str) -> str:
+    try:
+        return _live_find_act_pdf_url(act_title)
+    except OSError:
+        saved = USE_SNAPSHOT and bill_snapshot.act_pdf_url(act_title)
+        if not saved:
+            raise
+        _use_snapshot_notice()
+        return saved
+
+
+def _live_find_act_pdf_url(act_title: str) -> str:
     expression = f'(PrintType="act.new") AND Title="{act_title}"'
     query = urlencode(
         {
@@ -477,6 +537,19 @@ def find_act_pdf_url(act_title: str) -> str:
 
 
 def find_parliament_bill_document_urls(
+    bill_page_url: str,
+) -> dict[str, list[str]]:
+    try:
+        return _live_find_parliament_bill_document_urls(bill_page_url)
+    except OSError:
+        saved = USE_SNAPSHOT and bill_snapshot.bill_documents(bill_page_url)
+        if not saved:
+            raise
+        _use_snapshot_notice()
+        return saved
+
+
+def _live_find_parliament_bill_document_urls(
     bill_page_url: str,
 ) -> dict[str, list[str]]:
     parsed_bill_url = urlparse(bill_page_url)
@@ -562,6 +635,17 @@ def find_parliament_bill_pdf_url(bill_page_url: str) -> str:
 
 
 def fetch_official_pdf(document_url: str, allowed_host: str) -> bytes:
+    try:
+        return _live_fetch_official_pdf(document_url, allowed_host)
+    except OSError:
+        saved = USE_SNAPSHOT and bill_snapshot.pdf_bytes(document_url)
+        if not saved:
+            raise
+        _use_snapshot_notice()
+        return saved
+
+
+def _live_fetch_official_pdf(document_url: str, allowed_host: str) -> bytes:
     parsed_url = urlparse(document_url)
     if parsed_url.scheme != "https" or parsed_url.hostname != allowed_host:
         raise ValueError("The PDF is not hosted on the expected official website.")
