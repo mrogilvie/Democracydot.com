@@ -7,6 +7,7 @@ from urllib.error import HTTPError, URLError
 
 import markdown
 import streamlit as st
+import streamlit.components.v1 as components
 from openai import OpenAIError
 
 from demodot import (
@@ -25,7 +26,7 @@ from demodot import (
     get_openai_client,
     report_openai_error,
 )
-from comment_store import save_signup
+from comment_store import get_signup_for_device, save_signup
 from follow_dialog import show_follow_dialog
 
 
@@ -564,6 +565,18 @@ def build_bill_information_markdown() -> str:
     return "\n".join(lines)
 
 
+DEVICE_COOKIE = "dd_device"
+returning_signup = None
+device_cookie = st.context.cookies.get(DEVICE_COOKIE)
+if device_cookie and not st.session_state.get("signup_saved"):
+    try:
+        returning_signup = get_signup_for_device(device_cookie)
+    except (OSError, sqlite3.Error):
+        returning_signup = None
+    if returning_signup:
+        st.session_state["signup_saved"] = True
+        st.session_state["signup_device_token"] = device_cookie
+
 with download_area:
     if st.button(
         "Please follow me on facebook for downloads access",
@@ -605,7 +618,14 @@ with download_area:
                     st.error(f"Could not save your details: {error}")
                 else:
                     st.session_state["signup_saved"] = True
-                    st.rerun()
+                    components.html(
+                        "<script>window.parent.document.cookie = "
+                        f"'{DEVICE_COOKIE}="
+                        f"{st.session_state['signup_device_token']}; "
+                        "max-age=31536000; path=/; SameSite=Lax';</script>",
+                        height=0,
+                    )
+                    st.success("Thanks, your details are saved on this device.")
     if entered_bill and not follows_madeleine:
         st.info("Confirm that you follow the Facebook page to enable the download.")
 
