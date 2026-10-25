@@ -643,8 +643,10 @@ with st.container(border=True):
 
 st.subheader("Generate Democracy Index")
 st.caption(
-    "The Democracy Index is an AI-assisted estimate of substantive similarity, "
-    "not an official parliamentary rating or a measure of democratic legitimacy."
+    "To generate a Democracy Index for the Bill you are researching, please "
+    "ensure you have completed the steps and added required information to the "
+    "Bill Information, Democratic Engagement pages and this page. The Democracy "
+    "Index draws information from across the Bill's journey."
 )
 
 compare_documents = st.button(
