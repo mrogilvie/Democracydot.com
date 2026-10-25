@@ -1,6 +1,7 @@
 import streamlit as st
 
 DEMOCRACYDOT_FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61595771103973"
+MADELEINE_FACEBOOK_URL = "https://www.facebook.com/madeleineogilvie.com.au/"
 
 
 st.markdown(
@@ -40,7 +41,7 @@ st.markdown(
       <a class="dd-follow-btn" href="{FACEBOOK_PAGE_URL}" target="_blank"
          rel="noopener noreferrer">Follow Madeleine Ogilvie MP on Facebook</a>
     </section>
-    """.replace("{FACEBOOK_PAGE_URL}", DEMOCRACYDOT_FACEBOOK_URL),
+    """.replace("{FACEBOOK_PAGE_URL}", MADELEINE_FACEBOOK_URL),
     unsafe_allow_html=True,
 )
 
