@@ -26,6 +26,7 @@ The repository has progressed from its initial Python/Streamlit scaffold to a wo
 - Merged the Guided Bill Analysis into the Bill Information page (checkbox list of analyses and a pink **Compile a Report** button), made the Proposed amendment generate when Enter is pressed, and updated the Facebook, LinkedIn and footer links on the landing page
 - Removed the OpenAI data-sharing and Essential reading captions from the top of Bill Information
 - A device that has already given its name and mobile number is now recognised on every page (not only Bill Information), so the Download documents button unlocks without re-entering them
+- Added optional Postgres storage through a `DATABASE_URL` secret (any hosted Postgres provider; none chosen yet) so sign-ups and comments can survive Streamlit Cloud restarts; local development still uses SQLite
 - Added a pink **Download documents** button above the Billbow heading on Democratic Engagement that bundles the official Bill PDFs shown on the page into one ZIP (enabled once the name and mobile form has been completed)
 - On the Democracy Index page, a Bill carried over automatically from page 1 now also runs **Create Democracy Index** as soon as the Parliament search finds it
 - Changed "Download Bill information" to a pink "Download full report": a formatted HTML document combining the Bill information, essential reading, guided analysis, Hansard summary and public discussion
@@ -94,7 +95,17 @@ To enable the private owner review page, set a strong password in the root `.env
 DEMOCRACYDOT_OWNER_PASSWORD=choose-a-strong-unique-password
 ```
 
-For deployment, configure `DEMOCRACYDOT_OWNER_PASSWORD` in Streamlit secrets instead. Billbow comments and any previously collected opted-in sign-up names and mobile numbers are stored in `comments.sqlite3` in the project root. On Streamlit Community Cloud these files are lost when the app restarts, so durable storage there needs an external database.
+For deployment, configure `DEMOCRACYDOT_OWNER_PASSWORD` in Streamlit secrets instead. Billbow comments and sign-up names and mobile numbers are stored in `comments.sqlite3` in the project root when running locally. On Streamlit Community Cloud that file is lost whenever the app restarts, so sign-ups and comments will not last until a durable database is chosen. The app already supports any hosted Postgres database: set a `DATABASE_URL` secret and it is used automatically, with no other code change. No provider has been chosen yet.
+
+To use a hosted Postgres database, copy its **connection string** (it looks like `postgresql://user:password@host/dbname?sslmode=require`) and add it to the app's Streamlit secrets. Keep the string private; never commit it.
+
+```toml
+OPENAI_API_KEY = "sk-..."
+DEMOCRACYDOT_OWNER_PASSWORD = "choose-a-strong-password"
+DATABASE_URL = "postgresql://user:password@host/dbname?sslmode=require"
+```
+
+The tables are created automatically the first time the app saves or reads data.
 
 ## Deployment
 
@@ -116,7 +127,7 @@ Streamlit prints a local URL in the terminal. Open that URL in a browser to use 
 app.py                      Streamlit page configuration and navigation
 design_system.py            Shared Democracydot colors, typography, and component styles
 demodot.py                  Shared OpenAI, source-text, and Bill-session helpers
-comment_store.py            SQLite persistence for anonymous Billbow submissions
+comment_store.py            SQLite (local) or Postgres (DATABASE_URL) storage for Billbow submissions and sign-ups
 pages/
   home.py                   App overview and links into the three stages
   bill_interaction.py       Page 1, Bill Information: details, links, and optional summary
