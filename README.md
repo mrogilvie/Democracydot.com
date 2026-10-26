@@ -167,6 +167,40 @@ python build_snapshot.py          # 2025 and 2026
 python build_snapshot.py 2026     # chosen years only
 ```
 
+### Requesting live access from Parliament IT
+
+Live lookups from the hosted app are refused by Parliament's bot protection, so the app relies on the snapshot. Parliament IT has been approached and is arranging access, which may take some time. The proposed request is kept here for reference:
+
+> **Subject:** Request: allow read-only access to public Bills pages for the Democracydot civic app
+>
+> Hi [Name],
+>
+> Thanks for talking with me. This is the written follow-up to our conversation.
+>
+> **Background.** Democracydot (https://democracydot.com) is a civic-information app that helps the public understand Tasmanian Bills. It looks up Bills on the Parliament website, reads the Bill and Act documents, and presents plain-language summaries. The app is hosted on Streamlit Community Cloud.
+>
+> **The problem.** Requests from the app's hosting servers to www.parliament.tas.gov.au are refused with HTTP 403, apparently by the Cloudflare bot protection in front of the site. The same pages load fine from a normal browser and from other networks. Because of this, the app currently works from a saved copy of the Bills data, which is refreshed every few hours. It cannot show newly introduced Bills or status changes as they happen.
+>
+> **What I'm asking for.** Please consider allowing the app's requests through the bot protection. Any of these would work:
+> 1. **Allow by identifying header (preferred).** The app would send a distinctive User-Agent, for example `DemocracydotBot/1.0 (+https://democracydot.com; contact: [email])`, and requests with it are allowed. Streamlit Community Cloud does not publish fixed IP addresses, so an IP allowlist is unreliable.
+> 2. **Allow by IP.** If preferred, requests can be routed through a small relay with a fixed IP address, which I would give you.
+> 3. **Another approach you prefer**, such as an official feed or API for Bills data, if one exists.
+>
+> **What the app requests.**
+> - Only public, read-only pages: the Bills lists (`/bills/...`), individual Bill pages and their PDF documents.
+> - Low volume: pages are fetched on demand when a user looks up a Bill, cached for an hour, and paced to avoid bursts.
+> - No logins, forms, scraping of personal data, or other write actions.
+> - Any rate limits or other conditions you set will be honoured.
+>
+> Please let me know what you need from me, such as the app's owner details, a technical contact, or a trial period. I am happy to adjust the app to meet your requirements.
+>
+> Kind regards,
+> [Name]
+> [Phone] | [Email]
+> Democracydot
+
+If IT chooses the header option, update `BROWSER_HEADERS` and `FALLBACK_HEADER_PROFILES` in `demodot.py` to send the agreed User-Agent.
+
 ## Dependency list
 
 The current dependency set is defined in `requirements.txt` and includes:
