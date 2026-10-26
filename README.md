@@ -125,6 +125,8 @@ Any other `@` A records, such as GoDaddy's parking records, and domain forwardin
 
 ### QR code
 
+![QR code linking to the Democracydot app](docs/qr-democracydot-app.png)
+
 `docs/qr-democracydot-app.png` is a QR code that opens the Streamlit app at `https://democracydotcom.streamlit.app/`. It is also published at `https://democracydot.com/qr-democracydot-app.png`. Keep the white border when printing it, at least about 2.5 cm across. To regenerate it, for example if the app address changes, run `python -m pip install "qrcode[pil]"` and then `qrcode.make("https://democracydotcom.streamlit.app/").save("docs/qr-democracydot-app.png")` in Python.
 
 ### Public repository
