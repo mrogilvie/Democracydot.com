@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; }
+  /* Facebook shows the centre ~1100px on mobile, so all content sits there. */
+  .cover {
+    position: relative; overflow: hidden;
+    width: 1640px; height: 624px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background:
+      radial-gradient(ellipse at 88% 0%, #dfe9ff 0, transparent 520px),
+      radial-gradient(ellipse at 8% 100%, #ffd6f5 0, transparent 420px),
+      linear-gradient(180deg, #ffffff 0%, #f1f5ff 100%);
+    font-family: "DM Sans", sans-serif;
+    text-align: center;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 16px;
+    font-family: Manrope, sans-serif; font-weight: 800; font-size: 46px; color: #102a43;
+    margin-bottom: 34px;
+  }
+  .dot { color: #ff38d1; }
+  .mark { display: flex; align-items: flex-end; gap: 6px; height: 48px; }
+  .mark span { display: block; width: 12px; border-radius: 8px; }
+  .mark span:nth-child(1) { height: 26px; background: #6495ed; }
+  .mark span:nth-child(2) { height: 42px; background: #ff38d1; }
+  .mark span:nth-child(3) { height: 34px; background: #102a43; }
+  h1 {
+    margin: 0; font-family: Manrope, sans-serif; font-weight: 800;
+    font-size: 78px; line-height: 1.1; letter-spacing: -1.5px; color: #102a43;
+  }
+  h1 span { color: #ff38d1; }
+  p.sub { margin: 26px 0 0; font-size: 30px; color: #5e7085; font-weight: 500; }
+  .pill {
+    margin-top: 38px; padding: 14px 34px; border-radius: 999px;
+    background: #ff38d1; color: #fff; font-weight: 600; font-size: 28px;
+  }
+</style>
+</head>
+<body>
+  <div class="cover">
+    <div class="brand">
+      <div class="mark"><span></span><span></span><span></span></div>
+      <div>democracy<span class="dot">dot</span></div>
+    </div>
+    <h1>Understand the laws<br>that <span>shape your life.</span></h1>
+    <p class="sub">Follow Tasmanian Bills. Have your say. See what changed.</p>
+    <div class="pill">democracydot.com</div>
+  </div>
+</body>
+</html>
