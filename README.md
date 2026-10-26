@@ -219,7 +219,8 @@ The following is the user's original feature request, preserved verbatim as a pr
 
 ## Planned roadmap
 
-1. Add moderation and retention controls for owner-reviewed Billbow submissions
+1. **Live Bill lookup (planned patch).** Restore real-time lookups from the hosted app once Parliament IT has allowed Streamlit Community Cloud's requests (see "Requesting live access from Parliament IT"). Until then the app uses the saved snapshot. When access is in place, apply any agreed change (such as the allowed User-Agent in `demodot.py`), confirm live lookups work from the hosted app, and then review the snapshot refresh and the snapshot notice.
+2. Add moderation and retention controls for owner-reviewed Billbow submissions
 2. Retrieve and cite official Bill texts and Hansard records
 3. Improve AI analysis with source citations and traceable evidence
 4. Add durable Bill records and support comparisons across Bills or policy areas
