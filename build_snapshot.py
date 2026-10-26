@@ -60,6 +60,8 @@ def main() -> None:
     for year in years:
         listing = bill_list(year)
         print(f"{year}: {len(listing)} Bills")
+        if not listing:
+            sys.exit(f"No Bills found for {year}; keeping the existing snapshot.")
         for number, (url, title) in enumerate(sorted(listing.items()), start=1):
             entry: dict = {"title": title, "documents": None, "status": None}
             try:
@@ -93,6 +95,11 @@ def main() -> None:
         "pdfs": pdfs,
         "acts": acts,
     }
+    if INDEX_PATH.exists():
+        previous = json.loads(INDEX_PATH.read_text(encoding="utf-8"))
+        # Keep the old date when nothing changed, so unchanged runs make no commit.
+        if {**previous, "generated": None} == {**index, "generated": None}:
+            index["generated"] = previous["generated"]
     INDEX_PATH.write_text(json.dumps(index, indent=1), encoding="utf-8")
     used = set(pdfs.values())
     for stale in (SNAPSHOT_DIR / "pdfs").iterdir():
