@@ -112,7 +112,16 @@ The app is deployed from this repository on Streamlit Community Cloud (repositor
 
 ### Public landing website and installable PWA
 
-A separate static website and installable Progressive Web App (PWA) are in `docs/`. To publish them, open the repository's **Settings → Pages**, choose **Deploy from a branch**, select `main` and the `/docs` folder, and save. GitHub Pages will publish the site at the URL shown in those settings; later pushes to `docs/` update it. Use HTTPS so browsers can install the PWA and cache the landing page for offline viewing. Visitors can install it from a supported browser; iPhone and iPad users can open the site in Safari and choose **Share → Add to Home Screen**. The installed app opens the landing page, which links to the existing Streamlit service; the interactive Bill tools still need an internet connection. A custom domain can be configured in GitHub Pages if one is available.
+A separate static website and installable Progressive Web App (PWA) are in `docs/`. To publish them, open the repository's **Settings → Pages**, choose **Deploy from a branch**, select `main` and the `/docs` folder, and save. GitHub Pages will publish the site at the URL shown in those settings; later pushes to `docs/` update it. Use HTTPS so browsers can install the PWA and cache the landing page for offline viewing. Visitors can install it from a supported browser; iPhone and iPad users can open the site in Safari and choose **Share → Add to Home Screen**. The installed app opens the landing page, which links to the existing Streamlit service; the interactive Bill tools still need an internet connection.
+
+The landing page is served at the custom domain `https://democracydot.com` (the file `docs/CNAME` records it; do not delete it). The domain is registered with GoDaddy, with these DNS records:
+
+| Type | Name | Value |
+|---|---|---|
+| A | `@` | `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153` (four records) |
+| CNAME | `www` | `mrogilvie.github.io` |
+
+Any other `@` A records, such as GoDaddy's parking records, and domain forwarding must be removed. In **Settings → Pages**, the custom domain is `democracydot.com`; tick **Enforce HTTPS** once GitHub has finished issuing the certificate, which can take up to 24 hours.
 
 ### Public repository
 
