@@ -160,7 +160,7 @@ The Parliament of Tasmania website is behind Cloudflare bot protection, which ca
 
 The app always tries the live site first. If Parliament refuses the request, it uses the snapshot for Bill matching, document links, status and PDFs, and shows a note with the snapshot date. After a refusal it skips live requests for five minutes so pages stay quick. Bills outside the snapshot still need the live site. Hansard, e-petition and AI web-search features are not part of the snapshot.
 
-The snapshot goes out of date as Bills progress or new ones are introduced, so the **Refresh Parliament snapshot** GitHub Action (`.github/workflows/refresh-snapshot.yml`) rebuilds it every six hours from GitHub's network, which Parliament allows, and commits any changes to `snapshot/`. Streamlit Community Cloud redeploys on each commit. Run it on demand from the repository's **Actions** tab (**Run workflow**). The build stops without changing anything if Parliament returns no Bills. To refresh manually from a machine where Parliament is reachable (for example the Codespace), then commit `snapshot/`:
+The snapshot goes out of date as Bills progress or new ones are introduced. There is no automatic refresh; a scheduled GitHub Action was tried and removed because Parliament's protection also refuses GitHub's servers, and live lookup is planned instead once Parliament IT allows access (see the roadmap). Until then, refresh it manually from a machine where Parliament is reachable (for example the Codespace), then commit `snapshot/`. The build stops without changing anything if Parliament returns no Bills:
 
 ```sh
 python build_snapshot.py          # 2025 and 2026
@@ -219,7 +219,7 @@ The following is the user's original feature request, preserved verbatim as a pr
 
 ## Planned roadmap
 
-1. **Live Bill lookup (planned patch).** Restore real-time lookups from the hosted app once Parliament IT has allowed Streamlit Community Cloud's requests (see "Requesting live access from Parliament IT"). Until then the app uses the saved snapshot. When access is in place, apply any agreed change (such as the allowed User-Agent in `demodot.py`), confirm live lookups work from the hosted app, and then review the snapshot refresh and the snapshot notice.
+1. **Live Bill lookup (planned patch).** Restore real-time lookups from the hosted app once Parliament IT has allowed Streamlit Community Cloud's requests (see "Requesting live access from Parliament IT"). Until then the app uses the saved snapshot. When access is in place, apply any agreed change (such as the allowed User-Agent in `demodot.py`), confirm live lookups work from the hosted app, and then review the snapshot notice.
 2. Add moderation and retention controls for owner-reviewed Billbow submissions
 2. Retrieve and cite official Bill texts and Hansard records
 3. Improve AI analysis with source citations and traceable evidence
