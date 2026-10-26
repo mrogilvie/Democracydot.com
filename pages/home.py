@@ -132,8 +132,8 @@ st.markdown(
       <nav class="dd-social-links" aria-label="Social media">
         <a href="https://www.facebook.com/profile.php?id=61595771103973" target="_blank"
            rel="noopener noreferrer">Facebook</a>
-        <a href="https://www.linkedin.com/in/hon-madeleine-ogilvie-mp-a23076b4"
-           target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://www.linkedin.com/company/democracydot-com/"
+           target="_blank" rel="noopener noreferrer">Democracydot</a>
       </nav>
       <span>© 2026 Madeleine Ogilvie. All rights reserved.</span>
     </footer>
