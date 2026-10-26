@@ -123,6 +123,10 @@ The landing page is served at the custom domain `https://democracydot.com` (the 
 
 Any other `@` A records, such as GoDaddy's parking records, and domain forwarding must be removed. In **Settings → Pages**, the custom domain is `democracydot.com`; tick **Enforce HTTPS** once GitHub has finished issuing the certificate, which can take up to 24 hours.
 
+### QR code
+
+`docs/qr-democracydot-app.png` is a QR code that opens the Streamlit app at `https://democracydotcom.streamlit.app/`. It is also published at `https://democracydot.com/qr-democracydot-app.png`. Keep the white border when printing it, at least about 2.5 cm across. To regenerate it, for example if the app address changes, run `python -m pip install "qrcode[pil]"` and then `qrcode.make("https://democracydotcom.streamlit.app/").save("docs/qr-democracydot-app.png")` in Python.
+
 ### Public repository
 
 Streamlit Community Cloud allows only one private app per account, so this repository is made public. The code is safe to publish because it is a civic app with nothing sensitive in the source. Private data, such as sign-ups, comments, the OpenAI key, the owner password and any database connection string, stays out of the repository: keep secrets only in Streamlit **Secrets**, and never commit them.
@@ -152,6 +156,7 @@ docs/                       Static public landing website (GitHub Pages)
   manifest.webmanifest      Installable PWA name, scope, display, and icons
   service-worker.js         Offline cache for the landing page
   install.js                Browser install prompt and iOS instructions
+  qr-democracydot-app.png   QR code linking to the Streamlit app
 ```
 
 ## Saved Bill snapshot
