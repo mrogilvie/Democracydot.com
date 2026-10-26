@@ -160,7 +160,7 @@ The Parliament of Tasmania website is behind Cloudflare bot protection, which ca
 
 The app always tries the live site first. If Parliament refuses the request, it uses the snapshot for Bill matching, document links, status and PDFs, and shows a note with the snapshot date. After a refusal it skips live requests for five minutes so pages stay quick. Bills outside the snapshot still need the live site. Hansard, e-petition and AI web-search features are not part of the snapshot.
 
-The snapshot goes out of date as Bills progress or new ones are introduced. Refresh it from a machine where Parliament is reachable (for example the Codespace), then commit `snapshot/`:
+The snapshot goes out of date as Bills progress or new ones are introduced, so the **Refresh Parliament snapshot** GitHub Action (`.github/workflows/refresh-snapshot.yml`) rebuilds it every six hours from GitHub's network, which Parliament allows, and commits any changes to `snapshot/`. Streamlit Community Cloud redeploys on each commit. Run it on demand from the repository's **Actions** tab (**Run workflow**). The build stops without changing anything if Parliament returns no Bills. To refresh manually from a machine where Parliament is reachable (for example the Codespace), then commit `snapshot/`:
 
 ```sh
 python build_snapshot.py          # 2025 and 2026
