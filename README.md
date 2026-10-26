@@ -129,6 +129,15 @@ Any other `@` A records, such as GoDaddy's parking records, and domain forwardin
 
 `docs/qr-democracydot-app.png` is a QR code that opens the Streamlit app at `https://democracydotcom.streamlit.app/`. It is also published at `https://democracydot.com/qr-democracydot-app.png`. Keep the white border when printing it, at least about 2.5 cm across. To regenerate it, for example if the app address changes, run `python -m pip install "qrcode[pil]"` and then `qrcode.make("https://democracydotcom.streamlit.app/").save("docs/qr-democracydot-app.png")` in Python.
 
+### Facebook page branding
+
+`brand/facebook/` holds images for the Democracydot Facebook page, made from the app's colours (navy `#102a43`, cornflower `#6495ed`, pink `#ff38d1`, paper `#f7f9ff`), Manrope and DM Sans fonts and three-bar logo:
+
+- `democracydot-facebook-profile.png` (720 × 720): the profile picture. Facebook crops it to a circle, and the logo sits well inside that.
+- `democracydot-facebook-cover.png` (1640 × 624): the cover photo. The text stays within the centre 1100 px so mobile cropping doesn't cut it, and clear of the bottom-left corner where the profile picture overlaps on desktop.
+
+To change them, edit `profile.html` or `cover.html` in that folder and re-render each page at its image size with a headless browser (for example Playwright's `page.screenshot`).
+
 ### Public repository
 
 Streamlit Community Cloud allows only one private app per account, so this repository is made public. The code is safe to publish because it is a civic app with nothing sensitive in the source. Private data, such as sign-ups, comments, the OpenAI key, the owner password and any database connection string, stays out of the repository: keep secrets only in Streamlit **Secrets**, and never commit them.
