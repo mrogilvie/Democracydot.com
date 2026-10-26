@@ -133,7 +133,7 @@ st.markdown(
         <a href="https://www.facebook.com/profile.php?id=61595771103973" target="_blank"
            rel="noopener noreferrer">Facebook</a>
         <a href="https://www.linkedin.com/company/democracydot-com/"
-           target="_blank" rel="noopener noreferrer">Democracydot</a>
+           target="_blank" rel="noopener noreferrer">Linked In</a>
       </nav>
       <span>© 2026 Madeleine Ogilvie. All rights reserved.</span>
     </footer>
