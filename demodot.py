@@ -296,6 +296,11 @@ def _match_parliament_bill(
     bill_name: str, bills: list[tuple[str, str]]
 ) -> tuple[str, str] | None:
     wanted = " ".join(bill_name.casefold().split())
+    wanted = re.sub(
+        r"\s*\(\s*act\s+\d+\s+of\s+\d{4}\s*\)$",
+        "",
+        wanted,
+    ).strip()
     for bill_url, label in bills:
         if label.casefold().startswith(wanted):
             return bill_url, label

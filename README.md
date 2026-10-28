@@ -35,6 +35,14 @@ The project is currently grounded in a lightweight Python stack designed for exp
 - OpenAI models for policy analysis and summarization
 - python-dotenv for environment management
 
+## System overview
+
+The diagram shows how the public domain, GitHub source and deployments, social pages, app and supporting services fit together.
+
+![High-level Democracydot system diagram](docs/democracydot-system-overview.png)
+
+**Public links:** [Democracydot website](https://democracydot.com) · [Streamlit app](https://democracydotcom.streamlit.app/) · [Facebook](https://www.facebook.com/profile.php?id=61595771103973) · [LinkedIn](https://www.linkedin.com/company/democracydot-com/)
+
 ## Current implementation
 
 The app opens on a public landing page. The three Bill pages are available without signing in, and the expanded sidebar provides navigation between them.
@@ -46,6 +54,14 @@ The app opens on a public landing page. The three Bill pages are available witho
 The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are available as app pages. A notice on each page explains that using the app indicates acceptance of the terms.
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.
+
+## Test Cases
+
+Democracydot is a civic democracy app to enable deeper engagement between constituents and the legislative process of the Tasmanian Parliament. The three test cases were run against the Parliament records and available PDFs:
+
+- **Conversion Practices Prohibition Bill 2026 (45 of 2026)** — Bill lookup and introduced Bill PDF passed. The available status is **First Reading**; no second reading speech link was found, and Hansard returned only the first-reading entry. The claimed second reading and commenced debate were not confirmed; the second reading was given on the same day this assignment was submitted.
+- **Residential Parks Bill 2026 (Act 13 of 2026)** — lookup passed, including resolving the Act-numbered name to Parliament's Bill record (2 of 2026). Royal Assent is recorded on 11 September 2026, and the Act PDF was retrieved.
+- **Electoral Disclosure and Funding Amendment (Spending Limits) Bill 2026 (49 of 2026)** — Bill lookup and introduced Bill PDF passed.
 
 ## Assessment criteria check
 
