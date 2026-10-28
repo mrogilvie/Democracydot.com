@@ -93,7 +93,13 @@ The website and app share a clear, accessible visual style, with generous spacin
 
 ## Test Cases
 
-The three Parliament-record test cases were run on 28 October 2026. Two passed; the Conversion Practices case passed its Bill lookup, PDF, and status checks, but the Hansard check timed out for both chambers. See the [Test Case documentation](docs/Test%20Case%20documentation/README.md) for case results, source links, and verification details.
+The three Parliament-record test cases were run on 28 October 2026. Two passed; the Conversion Practices case passed its Bill lookup, PDF, and status checks, but the Hansard check timed out for both chambers. See the [Test Case documentation](docs/Test%20Case%20documentation/README.md) for the full summary, source links, and verification details.
+
+| Test case | Result | Detailed output |
+|---|---|---|
+| **Conversion Practices Prohibition Bill 2026 (45 of 2026)** | Partial — Bill lookup, introduced Bill PDF (88 pages), and status passed; Hansard timed out for both chambers, including on retry. | [Case results](docs/Test%20Case%20documentation/01-conversion-practices-prohibition/results.json) |
+| **Residential Parks Bill 2026 (Act 13 of 2026)** | Passed — resolved to Parliament record 2 of 2026; introduced Bill (134 pages), status, and Act as passed (149 pages) retrieved. | [Case results](docs/Test%20Case%20documentation/02-residential-parks-act-13-2026/results.json) |
+| **Electoral Disclosure and Funding Amendment (Spending Limits) Bill 2026 (49 of 2026)** | Passed — Bill lookup and introduced Bill PDF (34 pages) passed. | [Case results](docs/Test%20Case%20documentation/03-electoral-disclosure-spending-limits/results.json) |
 
 ## Assessment criteria check
 
