@@ -104,11 +104,17 @@ After completing the development setup, start the Streamlit app from the reposit
 streamlit run app.py
 ```
 
-Streamlit prints a local URL in the terminal. Open it in a browser to use the app and move between pages in the sidebar; no sign-in is required. Bill details and links are retained in the session. Comments and sign-ups use local SQLite unless `DATABASE_URL` is configured.
+Streamlit prints a local URL in the terminal. Open it in a browser to use the app and move between pages in the sidebar; no sign-in is required for this local run. Bill details and links are retained in the session. Comments and sign-ups use local SQLite unless `DATABASE_URL` is configured.
 
 ## Deployment
 
 The app is deployed from this repository on Streamlit Community Cloud (repository `mrogilvie/Democracydot.com`, branch `main`, main file `app.py`). Add `OPENAI_API_KEY` and `DEMOCRACYDOT_OWNER_PASSWORD` under **Advanced settings → Secrets**. Add `DATABASE_URL` there if durable hosted storage is configured. Pushes to `main` update the live app at `https://democracydotcom.streamlit.app/`.
+
+#### Assessment access check (28 October 2026)
+
+The GitHub repository is public, so Jack Stoneman (@jstoneman-ME) can view and clone it without being added as a collaborator. Public repository access does not grant permission to make changes.
+
+The live Streamlit URL redirected to a Streamlit login page when checked on 28 October 2026. This means access to the deployed app could not be confirmed, despite the local-run instructions above; the hosted app may require sign-in or have restricted access. Before assessment, check the app's sharing/access settings in Streamlit Community Cloud and test the live URL in a signed-out browser. If access remains restricted, grant Jack access using the available Streamlit sharing controls or provide an alternative way to review the app.
 
 ### Public landing website and installable PWA
 
