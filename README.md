@@ -57,6 +57,40 @@ The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are 
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.
 
+## User Interface & Design
+
+The website and app share a clear, accessible visual style, with generous spacing, readable typography, soft blue backgrounds, and pink action buttons. The screenshots below show the desktop website and each public app page in its initial state. The access-controlled owner review page is excluded.
+
+### Public website
+
+![Democracydot public landing page](docs/screenshots/landing-page.jpg)
+
+### Streamlit app
+
+#### Home
+
+![Democracydot app home page](docs/screenshots/app-home.jpg)
+
+#### Bill Information
+
+![Bill Information page](docs/screenshots/bill-information.jpg)
+
+#### Democratic Engagement
+
+![Democratic Engagement page](docs/screenshots/democratic-engagement.jpg)
+
+#### Democracy Index
+
+![Democracy Index page](docs/screenshots/democracy-index.jpg)
+
+#### Privacy Policy
+
+![Privacy Policy page](docs/screenshots/privacy-policy.jpg)
+
+#### Terms and Conditions
+
+![Terms and Conditions page](docs/screenshots/terms-and-conditions.jpg)
+
 ## Test Cases
 
 Democracydot is a civic democracy app to enable deeper engagement between constituents and the legislative process of the Tasmanian Parliament. The three test cases were run against the Parliament records and available PDFs:
