@@ -51,6 +51,8 @@ The app opens on a public landing page. The three Bill pages are available witho
 2. **Democratic Engagement** — Continue with the selected Bill to view available official documents and its parliamentary status. Users can ask Bill-grounded questions, request a proposed amendment, and submit Billbow feedback. The page can bundle the displayed official PDFs into a ZIP after the name/mobile form has been completed.
 3. **Democracy Index** — Find the Bill and, when available, its Act as passed. Create an AI-assisted alignment estimate and a marked-up comparison document; the report can also show the importance weighting derived from related electronic petition signatures. The Index is an estimate, not an official parliamentary rating or legal advice.
 
+![Diagram of the Democracy Index inputs, comparison decisions and report outputs](docs/democracy-index-methodology.png)
+
 The **Privacy Policy** (`/privacy`) and **Terms and Conditions** (`/terms`) are available as app pages. A notice on each page explains that using the app indicates acceptance of the terms.
 
 The OpenAI features use `gpt-4o-mini`. The Democracy Index is an AI-assisted estimate based only on the supplied Bill texts; it is not an official parliamentary rating, a measure of democratic legitimacy, or legal advice.
