@@ -140,7 +140,7 @@ To change them, edit `profile.html` or `cover.html` in that folder and re-render
 
 ### Public repository
 
-Streamlit Community Cloud allows only one private app per account, so this repository is made public. The code is safe to publish because it is a civic app with nothing sensitive in the source. Private data, such as sign-ups, comments, the OpenAI key, the owner password and any database connection string, stays out of the repository: keep secrets only in Streamlit **Secrets**, and never commit them.
+Streamlit Community Cloud allows only one private app per account, so I moved this repository to public to get the app working. I also added a personal account and paid additional costs to get the project finished. The code is safe to publish because it is a civic app with nothing sensitive in the source. Private data, such as sign-ups, comments, the OpenAI key, the owner password and any database connection string, stays out of the repository: keep secrets only in Streamlit **Secrets**, and never commit them.
 
 ## Repository layout
 
@@ -187,22 +187,29 @@ python build_snapshot.py 2026     # chosen years only
 
 Live lookups from the hosted app are refused by Parliament's bot protection, so the app relies on the snapshot. Parliament IT has been approached and is arranging access, which may take some time. The proposed request is kept here for reference:
 
-> **Subject:** Request: allow read-only access to public Bills pages for the Democracydot civic app
+Live lookups from the hosted app are refused by Parliament's bot protection, so the app relies on the snapshot. The full email correspondence is preserved here for reference:
+
+> Dear Chris,
 >
-> Hi [Name],
+> I am currently doing my Masters of Laws at Melbourne Uni specialising in IP and AI. I have an assignment due in which I have created an app that guides people through the Bill consultation and legislative processes of Parliament. Part of the app involves real time searching of the Parliament Website for bills. The app is called Democracydot and it is at www.democracydot.com
 >
-> Thanks for talking with me. This is the written follow-up to our conversation.
+> Background.
 >
-> **Background.** Democracydot (https://democracydot.com) is a civic-information app that helps the public understand Tasmanian Bills. It looks up Bills on the Parliament website, reads the Bill and Act documents, and presents plain-language summaries. The app is hosted on Streamlit Community Cloud.
+> Democracydot (https://democracydot.com) is a civic-information app that helps the public understand Tasmanian Bills. It looks up Bills on the Parliament website, reads the Bill and Act documents, and presents plain-language summaries. The app is hosted on Streamlit Community Cloud.
 >
-> **The problem.** Requests from the app's hosting servers to www.parliament.tas.gov.au are refused with HTTP 403, apparently by the Cloudflare bot protection in front of the site. The same pages load fine from a normal browser and from other networks. Because of this, the app currently works from a saved copy of the Bills data, which is refreshed every few hours. It cannot show newly introduced Bills or status changes as they happen.
+> The problem.
 >
-> **What I'm asking for.** Please consider allowing the app's requests through the bot protection. Any of these would work:
-> 1. **Allow by identifying header (preferred).** The app would send a distinctive User-Agent, for example `DemocracydotBot/1.0 (+https://democracydot.com; contact: [email])`, and requests with it are allowed. Streamlit Community Cloud does not publish fixed IP addresses, so an IP allowlist is unreliable.
-> 2. **Allow by IP.** If preferred, requests can be routed through a small relay with a fixed IP address, which I would give you.
-> 3. **Another approach you prefer**, such as an official feed or API for Bills data, if one exists.
+> Requests from the app's hosting servers to www.parliament.tas.gov.au are refused with HTTP 403, apparently by the Cloudflare bot protection in front of the site. The same pages load fine from a normal browser and from other networks. Because of this, the app currently works from a saved copy of the Bills data, which is refreshed every few hours. It cannot show newly introduced Bills or status changes as they happen.
 >
-> **What the app requests.**
+> What I'm asking for.
+>
+> Please consider allowing the app's requests through the bot protection. Any of these would work:
+> 1. Allow by identifying header (preferred). The app would send a distinctive User-Agent, for example `DemocracydotBot/1.0 (+https://democracydot.com; contact: [email])`, and requests with it are allowed. Streamlit Community Cloud does not publish fixed IP addresses, so an IP allowlist is unreliable.
+> 2. Allow by IP. If preferred, requests can be routed through a small relay with a fixed IP address, which I would give you.
+> 3. Another approach you prefer, such as an official feed or API for Bills data, if one exists.
+>
+> What the app requests.
+>
 > - Only public, read-only pages: the Bills lists (`/bills/...`), individual Bill pages and their PDF documents.
 > - Low volume: pages are fetched on demand when a user looks up a Bill, cached for an hour, and paced to avoid bursts.
 > - No logins, forms, scraping of personal data, or other write actions.
@@ -210,10 +217,29 @@ Live lookups from the hosted app are refused by Parliament's bot protection, so 
 >
 > Please let me know what you need from me, such as the app's owner details, a technical contact, or a trial period. I am happy to adjust the app to meet your requirements.
 >
-> Kind regards,
-> [Name]
-> [Phone] | [Email]
-> Democracydot
+> Kind regards and with thanks,
+>
+> Madeleine Ogilvie
+>
+> From: Chris Machin <chris.machin@parliament.tas.gov.au>
+> Sent: Wednesday, 28 October 2026 9:40 AM
+> To: madeleine.ogilvie <madeleine.ogilvie@parliament.tas.gov.au>
+> Subject:
+>
+> Thanks,
+>
+> Chris Machin
+> Assistant Manager, ICT Delivery,
+> Parliamentary ICT
+> Legislature-General
+> Parliament of Tasmania
+> Email: chris.machin@parliament.tas.gov.au
+> Tel: +61 3 6212 2124 | Mobile: +61 447 088 374
+> Mail: Parliament of Tasmania, Hobart TAS 7000
+> Web: parliament.tas.gov.au
+>
+> CONFIDENTIALITY NOTICE AND DISCLAIMER:
+> This email and any attachments may contain confidential information and be subject to parliamentary privilege. You should only read, disclose, transmit, copy, distribute, act in reliance on or commercialise the contents if you are authorised to do so. If you have received this email in error, please contact the sender immediately and permanently delete all copies of this message.
 
 If IT chooses the header option, update `BROWSER_HEADERS` and `FALLBACK_HEADER_PROFILES` in `demodot.py` to send the agreed User-Agent.
 
