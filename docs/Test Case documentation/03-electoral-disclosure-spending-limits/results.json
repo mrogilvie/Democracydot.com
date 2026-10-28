@@ -1,0 +1,40 @@
+{
+  "id": "03-electoral-disclosure-spending-limits",
+  "requested_name": "Electoral Disclosure and Funding Amendment (Spending Limits) Bill 2026 (49 of 2026)",
+  "query": "Electoral Disclosure and Funding Amendment (Spending Limits) Bill 2026",
+  "checks": {
+    "bill_lookup": {
+      "passed": true,
+      "detail": "Bill record found."
+    },
+    "introduced_bill_link": {
+      "passed": true,
+      "detail": [
+        "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0023/113747/49-of-2026.pdf"
+      ]
+    },
+    "introduced_bill_pdf": {
+      "passed": true,
+      "detail": "34 pages; selectable text extracted."
+    }
+  },
+  "record_title": "Electoral Disclosure and Funding Amendment (Spending Limits) Bill 2026 (49 of 2026)",
+  "bill_record_url": "https://www.parliament.tas.gov.au/bills/bills2026/electoral-disclosure-and-funding-amendment-spending-limits-bill-2026-49-of-2026",
+  "documents": {
+    "Bill as introduced": [
+      "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0023/113747/49-of-2026.pdf"
+    ],
+    "Second reading speech": [],
+    "Fact sheet": [],
+    "Clause notes": []
+  },
+  "bill_pdf": {
+    "url": "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0023/113747/49-of-2026.pdf",
+    "bytes": 273233,
+    "pages": 34,
+    "text_characters": 33026,
+    "sha256": "935e7d1f7c4c1fa8bfc2986edc4f1f09897e9b805f0b8acf141870b7f714c26e"
+  },
+  "overall_passed": true,
+  "retention_note": "Official PDFs were downloaded, validated, and text-extracted during the run; only source URLs, metadata, and SHA-256 digests are retained here. The full source documents are not redistributed."
+}

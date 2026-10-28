@@ -93,11 +93,7 @@ The website and app share a clear, accessible visual style, with generous spacin
 
 ## Test Cases
 
-Democracydot is a civic democracy app to enable deeper engagement between constituents and the legislative process of the Tasmanian Parliament. The three test cases were run against the Parliament records and available PDFs:
-
-- **Conversion Practices Prohibition Bill 2026 (45 of 2026)** — Bill lookup and introduced Bill PDF passed. The available status is **First Reading**; no second reading speech link was found, and Hansard returned only the first-reading entry. The claimed second reading and commenced debate were not confirmed; the second reading was given on the same day this assignment was submitted.
-- **Residential Parks Bill 2026 (Act 13 of 2026)** — lookup passed, including resolving the Act-numbered name to Parliament's Bill record (2 of 2026). Royal Assent is recorded on 11 September 2026, and the Act PDF was retrieved.
-- **Electoral Disclosure and Funding Amendment (Spending Limits) Bill 2026 (49 of 2026)** — Bill lookup and introduced Bill PDF passed.
+The three Parliament-record test cases were run on 28 October 2026. Two passed; the Conversion Practices case passed its Bill lookup, PDF, and status checks, but the Hansard check timed out for both chambers. See the [Test Case documentation](docs/Test%20Case%20documentation/README.md) for case results, source links, and verification details.
 
 ## Assessment criteria check
 

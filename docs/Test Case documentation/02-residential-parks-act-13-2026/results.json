@@ -1,0 +1,77 @@
+{
+  "id": "02-residential-parks-act-13-2026",
+  "requested_name": "Residential Parks Bill 2026 (Act 13 of 2026)",
+  "query": "Residential Parks Bill 2026 (Act 13 of 2026)",
+  "checks": {
+    "bill_lookup": {
+      "passed": true,
+      "detail": "Bill record found."
+    },
+    "introduced_bill_link": {
+      "passed": true,
+      "detail": [
+        "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0023/102488/2-of-2026.pdf"
+      ]
+    },
+    "introduced_bill_pdf": {
+      "passed": true,
+      "detail": "134 pages; selectable text extracted."
+    },
+    "parliament_status": {
+      "passed": true,
+      "detail": "Status retrieved from the Bill record."
+    },
+    "act_lookup_and_pdf": {
+      "passed": true,
+      "detail": "Matching Act as passed located and text extracted."
+    }
+  },
+  "record_title": "Residential Parks Bill 2026 (2 of 2026)",
+  "bill_record_url": "https://www.parliament.tas.gov.au/bills/bills2026/residential-parks-bill-2026-2-of-2026",
+  "documents": {
+    "Bill as introduced": [
+      "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0023/102488/2-of-2026.pdf"
+    ],
+    "Second reading speech": [
+      "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0034/108988/Second-Reading-Speech,-RESIDENTIAL-PARKS-BILL-2026-No.-2.pdf"
+    ],
+    "Fact sheet": [
+      "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0016/102508/Att-3-Fact-Sheet-Residential-Parks-Bill-2026.pdf"
+    ],
+    "Clause notes": [
+      "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0017/102509/Clause-Notes-Residential-Parks-Bill-2026.pdf"
+    ]
+  },
+  "bill_pdf": {
+    "url": "https://www.parliament.tas.gov.au/__data/assets/pdf_file/0023/102488/2-of-2026.pdf",
+    "bytes": 648143,
+    "pages": 134,
+    "text_characters": 144260,
+    "sha256": "fe1dc65b7204e245e0cbb0cfefe27d0d216b9ce599af012f7588b8fbd67eef2b"
+  },
+  "status": {
+    "house_of_assembly": {
+      "passed_date": "24/03/2026",
+      "latest_stage": "Royal Assent",
+      "latest_date": "11/09/2026",
+      "negatived_date": null
+    },
+    "legislative_council": {
+      "passed_date": "13/08/2026",
+      "latest_stage": "Third reading",
+      "latest_date": "13/08/2026",
+      "negatived_date": null
+    },
+    "royal_assent_date": "11/09/2026"
+  },
+  "act": {
+    "title": "Residential Parks Act 2026",
+    "url": "https://www.legislation.tas.gov.au/view/pdf/asmade/act-2026-013",
+    "bytes": 699918,
+    "pages": 149,
+    "text_characters": 163598,
+    "sha256": "52e8de7ffa0a6b2d6a392b523942765128073ae6665e0da25ebce1b0129291cc"
+  },
+  "overall_passed": true,
+  "retention_note": "Official PDFs were downloaded, validated, and text-extracted during the run; only source URLs, metadata, and SHA-256 digests are retained here. The full source documents are not redistributed."
+}
