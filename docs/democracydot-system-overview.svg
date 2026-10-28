@@ -34,30 +34,30 @@
   <text x="54" y="130" class="section">PUBLIC ACCESS</text>
   <rect x="54" y="150" width="220" height="108" rx="14" class="external"/>
   <text x="76" y="184" class="heading">Constituents</text>
-  <text x="76" y="210" class="body">Web browser or installed PWA</text>
-  <text x="76" y="235" class="small">Open the site or follow a shared link</text>
+  <text x="76" y="210" class="body">Browser or installed PWA</text>
+  <text x="76" y="235" class="small">Open the site or follow a link</text>
 
-  <rect x="350" y="142" width="250" height="124" rx="14" class="domain"/>
-  <text x="374" y="178" class="heading">democracydot.com</text>
-  <text x="374" y="204" class="body">Custom domain registered at GoDaddy</text>
-  <text x="374" y="229" class="body">DNS points to GitHub Pages</text>
-  <text x="374" y="250" class="small">HTTPS public landing site</text>
+  <rect x="335" y="142" width="250" height="124" rx="14" class="domain"/>
+  <text x="359" y="178" class="heading">democracydot.com</text>
+  <text x="359" y="204" class="body">Registered with GoDaddy</text>
+  <text x="359" y="229" class="body">DNS points to GitHub Pages</text>
+  <text x="359" y="250" class="small">HTTPS public landing site</text>
 
-  <rect x="680" y="142" width="270" height="124" rx="14" class="primary"/>
-  <text x="704" y="178" class="heading">GitHub Pages</text>
-  <text x="704" y="204" class="body">Static site from repository /docs</text>
-  <text x="704" y="229" class="body">Installable PWA + offline landing page</text>
-  <text x="704" y="250" class="small">Main branch → Pages deployment</text>
+  <rect x="655" y="142" width="270" height="124" rx="14" class="primary"/>
+  <text x="679" y="178" class="heading">GitHub Pages</text>
+  <text x="679" y="204" class="body">Static website from /docs</text>
+  <text x="679" y="229" class="body">PWA with offline landing page</text>
+  <text x="679" y="250" class="small">Main branch → Pages deployment</text>
 
   <path d="M274 204 H341" class="arrow"/>
-  <path d="M600 204 H671" class="arrow"/>
+  <path d="M585 204 H646" class="arrow"/>
 
-  <rect x="1000" y="142" width="150" height="124" rx="14" class="external"/>
-  <text x="1021" y="178" class="heading">Social pages</text>
-  <text x="1021" y="205" class="body">Facebook</text>
-  <text x="1021" y="230" class="body">LinkedIn</text>
-  <text x="1021" y="250" class="small">Links from landing page</text>
-  <path d="M950 204 H991" class="arrow dashed"/>
+  <rect x="960" y="142" width="190" height="124" rx="14" class="external"/>
+  <text x="980" y="178" class="heading">Social pages</text>
+  <text x="980" y="205" class="body">Facebook</text>
+  <text x="980" y="230" class="body">LinkedIn</text>
+  <text x="980" y="250" class="small">Links from landing page</text>
+  <path d="M925 204 H951" class="arrow dashed"/>
 
   <text x="54" y="322" class="section">SOURCE AND DEPLOYMENT</text>
   <rect x="54" y="346" width="300" height="142" rx="14" class="repo"/>
@@ -73,17 +73,17 @@
   <text x="496" y="435" class="body">Hosts the interactive Democracydot app</text>
   <text x="496" y="461" class="body">Secrets configured in deployment settings</text>
 
-  <path d="M204 346 V302 H815 V276" class="deploy"/>
+  <path d="M340 346 V302 H790 V276" class="deploy"/>
   <text x="427" y="294" class="small">/docs → GitHub Pages</text>
   <path d="M354 416 H461" class="deploy"/>
   <text x="371" y="401" class="small">app.py → deploy</text>
-  <path d="M815 266 V326 H630 V336" class="arrow"/>
-  <text x="826" y="306" class="small">Launch app</text>
+  <path d="M790 266 V326 H630 V336" class="arrow"/>
+  <text x="801" y="306" class="small">Launch app</text>
 
   <text x="54" y="550" class="section">APP SERVICES AND DATA</text>
   <rect x="470" y="574" width="320" height="128" rx="14" class="primary"/>
   <text x="496" y="610" class="heading">Democracydot Streamlit app</text>
-  <text x="496" y="637" class="body">Bill Information · Democratic Engagement</text>
+  <text x="496" y="637" class="body">Bill Information · Engagement</text>
   <text x="496" y="661" class="body">Democracy Index · Billbow feedback</text>
   <text x="496" y="686" class="small">Public Bill tools; owner review is protected</text>
 
@@ -97,14 +97,14 @@
   <rect x="906" y="574" width="244" height="128" rx="14" class="external"/>
   <text x="930" y="610" class="heading">OpenAI</text>
   <text x="930" y="637" class="body">gpt-4o-mini features</text>
-  <text x="930" y="661" class="body">Used when an AI feature is requested</text>
-  <text x="930" y="686" class="small">Key supplied through secrets or session</text>
+  <text x="930" y="661" class="body">Used when requested</text>
+  <text x="930" y="686" class="small">Key set in secrets or session</text>
   <path d="M799 638 H897" class="arrow"/>
 
   <rect x="250" y="758" width="700" height="94" rx="14" class="external"/>
   <text x="276" y="793" class="heading">Data storage</text>
   <text x="276" y="820" class="body">SQLite for local runs · Optional hosted Postgres for durable hosted comments and sign-ups</text>
-  <text x="276" y="841" class="small">Private credentials and database connection strings belong in deployment secrets, not the repository.</text>
+  <text x="276" y="841" class="small">Keep credentials and database URLs in deployment secrets, not in Git.</text>
   <path d="M630 711 V749" class="arrow"/>
 
   <text x="54" y="875" class="small">Social media is an outbound discovery channel; it is not an integration with the app or a data service.</text>
